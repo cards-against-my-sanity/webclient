@@ -1,4 +1,6 @@
+import { FetchError } from "ofetch";
 import { useUserStore } from "~/stores/user.store";
+import { UserType } from "~/types/user.interface";
 
 export const useAuth = () => {
     const nuxtApp = useNuxtApp();
@@ -10,35 +12,49 @@ export const useAuth = () => {
         headers: useRequestHeaders(["cookie"]) as HeadersInit
     })
 
-    function isAuthenticated() {
-        return !!store.user;
-    }
+    async function signUp(nickname: string, password: string, email?: string): Promise<Record<string, any>> {
+        const body: Record<string, any> = {
+            nickname,
+            password
+        };
 
-    async function logIn(nickname: string, password: string) {
-        if (isAuthenticated()) return;
-        
+        if (email) body.email = email;
+
         nuxtApp.$socket.close();
 
-        await fetch("auth/login", {
-            method: "POST",
-            body: {
-                nickname,
-                password
-            },
-            onResponse({ response }) {
-                store.user = response._data;
-            },
-            onResponseError() {
-                throw new Error("Invalid username or password combination.");
-            }
-        });
+        try {
+            await fetch("users", {
+                method: "POST",
+                body
+            });
+
+            await logIn(nickname, password);
+            return {};
+        } catch (err) {
+            return (err as FetchError).data;
+        }
+    }
+
+    async function logIn(nickname: string, password: string): Promise<boolean> {
+        nuxtApp.$socket.close();
+
+        try {
+            store.user = await fetch<UserType>("auth/login", {
+                method: "POST",
+                body: {
+                    nickname,
+                    password
+                }
+            });
+        } catch (err) {
+            return false;
+        }
 
         nuxtApp.$socket.connect();
+        return true;
     };
 
     async function logOut() {
-        if (!isAuthenticated()) return;
-
         nuxtApp.$socket.close();
 
         await fetch("auth/logout", {
@@ -51,11 +67,7 @@ export const useAuth = () => {
         nuxtApp.$socket.connect();
     }
 
-    async function getCurrentUser() {
-        if (isAuthenticated()) {
-            return store.user;
-        }
-
+    async function fetchCurrentUser() {
         await fetch("users", {
             ignoreResponseError: true,
             onResponse({ response }) {
@@ -69,9 +81,9 @@ export const useAuth = () => {
     }
 
     return {
-        isAuthenticated,
+        signUp,
         logIn,
         logOut,
-        getCurrentUser
+        fetchCurrentUser
     }
 }
