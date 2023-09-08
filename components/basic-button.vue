@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const { disabled } = withDefaults(defineProps<{
-    disabled: boolean
+    disabled?: boolean
 }>(), {
     disabled: false
 });
@@ -8,13 +8,13 @@ const { disabled } = withDefaults(defineProps<{
 defineEmits<{(e: 'click'): void}>();
 
 const classes = disabled ? ['text-gray-400'] : 
-    ['text-black', 'hover:bg-gray-400', 'hover:border-gray-600', 'hover:cursor-pointer', 'active:cursor-grabbing'];
+    ['hover:bg-green-500', 'dark:hover:bg-green-600', 'hover:cursor-pointer', 'active:cursor-grabbing'];
 </script>
 
 <template>
     <div 
         @click="$emit('click')"
-        class="bg-gray-200 rounded-md text-center p-2"
+        class="text-black bg-green-400 border-blue-700 dark:text-white dark:bg-green-700 dark:border-blue-400 border-2 rounded-md text-center p-2"
         :class="classes"
     >
         <slot></slot>

@@ -39,7 +39,7 @@ function transferToLogIn() {
 </script>
 
 <template>
-    <ModalBasicModal :open="open" @close="$emit('close')">
+    <ModalBasic :open="open" @close="$emit('close')">
         <h1 class="text-xl font-bold text-center">Create an Account</h1>
         <div v-if="modal.flashMessage" class="mt-2 text-center text-red-400">{{ modal.flashMessage }}</div>
         <div class="mt-5">
@@ -70,5 +70,5 @@ function transferToLogIn() {
                 <BasicButton @click="doSignUp">Finish</BasicButton>
             </div>
         </div>
-    </ModalBasicModal>
+    </ModalBasic>
 </template>

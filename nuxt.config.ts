@@ -3,8 +3,14 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   css: ['~/assets/css/main.css'],
   modules: [
-    '@pinia/nuxt'
+    '@pinia/nuxt',
+    '@nuxtjs/color-mode'
   ],
+  colorMode: {
+    preference: 'system',
+    fallback: 'dark',
+    classSuffix: ''
+  },
   postcss: {
     plugins: {
       tailwindcss: {},
