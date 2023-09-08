@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useUserStore } from '~/stores/user.store';
 import { useModalStore } from '~/stores/modal.store';
-import { MoonIcon, SunIcon } from '@heroicons/vue/24/solid';
+import { MoonIcon, SunIcon, EllipsisHorizontalCircleIcon } from '@heroicons/vue/24/solid';
 import { useGameStore } from '~/stores/game.store';
 
 const nuxtApp = useNuxtApp();
@@ -52,9 +52,12 @@ async function doLogOut() {
     <div class="flex justify-between items-center py-5">
         <img src="/logo.svg" class="fill-black" alt="Cards Against My Sanity Logo" />
         <nav class="flex justify-evenly items-center list-none gap-x-4 text-lg">
-            <a href="#" @click="toggleColorPreference">
-                <component class="h-6 w-6 cursor-pointer" :is="colorModeIcon" />
-            </a>
+            <client-only>
+                <component @click="toggleColorPreference" class="h-6 w-6 cursor-pointer" :is="colorModeIcon" />
+                <template #fallback>
+                    <EllipsisHorizontalCircleIcon class="h-6 w-6 cursor-pointer" />
+                </template>
+            </client-only>
             <nuxt-link to="/">Home</nuxt-link>
             <nuxt-link to="/about">About</nuxt-link>
             <template v-if="!user.user">

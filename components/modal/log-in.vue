@@ -42,7 +42,7 @@ function transferToSignUp() {
         <h1 class="text-xl font-bold text-center">Log In</h1>
         <div v-if="modal.flashMessage" class="mt-2 text-center text-red-400">{{ modal.flashMessage }}</div>
         <div class="mt-5">
-            <div class="grid grid-cols-1 gap-6 px-4">
+            <form @submit.prevent="doLogIn" class="grid grid-cols-1 gap-6 px-4">
                 <SimpleFormInput 
                     type="text"    
                     title="Nickname"
@@ -57,8 +57,8 @@ function transferToSignUp() {
 
                 <p>No account? You can <a href="#" @click.prevent="transferToSignUp">sign up here</a>.</p>
 
-                <BasicButton @click="doLogIn">Go</BasicButton>
-            </div>
+                <BasicButton><input type="submit" value="Go"></BasicButton>
+            </form>
         </div>
     </ModalBasic>
 </template>
