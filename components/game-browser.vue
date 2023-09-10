@@ -55,7 +55,7 @@ function doSpectateGame(gameId: string) {
                 <p>{{ game.spectators.length }} / {{ game.settings.maxSpectators }} spectators</p>
                 <p>Game ends at: {{ game.settings.maxScore }} points</p>
                 <p>Game state: {{ game.state }}</p>
-                <p>Decks in use: {{ game.decks }}</p>
+                <p>Decks in use: {{ game.decks.map(d => d.name).join(", ") }}</p>
                 <BasicButton @click="doJoinGame(game.id)" class="mt-4">Join</BasicButton>
             </div>
         </div>

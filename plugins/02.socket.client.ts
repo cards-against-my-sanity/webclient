@@ -27,9 +27,11 @@ export default defineNuxtPlugin(() => {
 
     socket.on('deckNotAdded', (payload) => nuxtApp.$sendErrorNotification("Deck not added", payload.reason));
 
-    socket.on('deckAdded', (payload) => {
+    socket.on('deckNotRemoved', (payload) => nuxtApp.$sendErrorNotification("Deck not removed", payload.reason));
+
+    socket.on('decksUpdated', (payload) => {
         if (gameStore.hasActiveGame) {
-            gameStore.updateGameDecks(gameStore.activeGame!.id, payload.decks);
+            gameStore.activeGame!.decks = payload.decks;
         } else {
             gameStore.updateGameDecks(payload.id, payload.decks);
         }
@@ -37,7 +39,7 @@ export default defineNuxtPlugin(() => {
 
     socket.on('settingsUpdated', (payload) => {
         if (gameStore.hasActiveGame) {
-            gameStore.updateGameSettings(gameStore.activeGame!.id, payload.settings);
+            gameStore.activeGame!.settings = payload.settings;
         } else {
             gameStore.updateGameSettings(payload.id, payload.settings);
         }
