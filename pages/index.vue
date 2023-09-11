@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { useGameStore } from '~/stores/game.store';
-const gameStore = useGameStore();
+import { useActiveGameStore } from '~/stores/active-game.store';
+
+const activeGameStore = useActiveGameStore();
 </script>
+
 <template>
-    <GameBrowser v-if="!gameStore.hasActiveGame" />
-    <Game v-else />
+    <GameActive v-if="activeGameStore.exists" />
+    <GameBrowser v-else />
 </template> 

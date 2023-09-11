@@ -44,30 +44,24 @@ function transferToLogIn() {
         <div v-if="modal.flashMessage" class="mt-2 text-center text-red-400">{{ modal.flashMessage }}</div>
         <div class="mt-5">
             <form @submit.prevent="doSignUp" class="grid grid-cols-1 gap-6 px-4">
-                <SimpleFormInput 
-                    type="text"    
-                    title="Nickname" 
-                    caption="This is the name you will use in games. You can change it later if you want." 
-                    placeholder="epicCAHPlayer123" 
-                    v-model="nickname" />
-                
-                <SimpleFormInput 
-                    type="password"    
-                    title="Password" 
-                    caption="Choose a good one, numb nuts." 
-                    placeholder="'password' is not a good password" 
-                    v-model="password" />
-
-                <SimpleFormInput 
-                    type="email"    
-                    title="Email (optional)" 
-                    caption="This just lets me send you password reset emails if you forget the thing. If you don't provide it, you can't reset your password. But that doesn't bother me. So, provide it, or don't. I don't care." 
-                    placeholder="yourmom@gmail.com" 
-                    v-model="email" />
+                <div>
+                    <UiCaptionedTitle title="Nickname"
+                        caption="This is the name you will use in games. You can change it later if you want." />
+                    <FormStringInput type="text" placeholder="epicCAHPlayer123" v-model="nickname" />
+                </div>
+                <div>
+                    <UiCaptionedTitle title="Password" caption="Choose a good one, numb nuts." />
+                    <FormStringInput type="password" placeholder="'password' is not a good password" v-model="password" />
+                </div>
+                <div>
+                    <UiCaptionedTitle title="Email (optional)"
+                        caption="This just lets me send you password reset emails if you forget the thing. If you don't provide it, you can't reset your password. But that doesn't bother me. So, provide it, or don't. I don't care." />
+                    <FormStringInput type="email" placeholder="yourmom@gmail.com" v-model="email" />
+                </div>
 
                 <p>Already have an account? You can <a href="#" @click.prevent="transferToLogIn">log in here</a>.</p>
 
-                <BasicButton><input type="submit" value="Finish"></BasicButton>
+                <UiButton><input type="submit" value="Finish"></UiButton>
             </form>
         </div>
     </ModalBasic>

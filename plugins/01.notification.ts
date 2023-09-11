@@ -7,7 +7,14 @@ export default defineNuxtPlugin((nuxtApp) => {
 
     return {
         provide: {
-            sendWarningNotificaton: (title: string, text: string) => {
+            sendSuccessNotification: (title: string, text: string) => {
+                notification.notify({
+                    title,
+                    text,
+                    type: 'success'
+                })
+            },
+            sendWarningNotification: (title: string, text: string) => {
                 notification.notify({
                     title,
                     text,

@@ -43,21 +43,18 @@ function transferToSignUp() {
         <div v-if="modal.flashMessage" class="mt-2 text-center text-red-400">{{ modal.flashMessage }}</div>
         <div class="mt-5">
             <form @submit.prevent="doLogIn" class="grid grid-cols-1 gap-6 px-4">
-                <SimpleFormInput 
-                    type="text"    
-                    title="Nickname"
-                    placeholder="epicCAHPlayer123" 
-                    v-model="nickname" />
-                
-                <SimpleFormInput 
-                    type="password"    
-                    title="Password" 
-                    placeholder="mySup3rP@ssw0rd" 
-                    v-model="password" />
+                <div>
+                    <UiCaptionedTitle title="Nickname" />
+                    <FormStringInput type="text" placeholder="epicCAHPlayer123" v-model="nickname" />
+                </div>
+                <div>
+                    <UiCaptionedTitle title="Password" />
+                    <FormStringInput type="password" placeholder="mySup3rP@ssw0rd" v-model="password" />
+                </div>
 
                 <p>No account? You can <a href="#" @click.prevent="transferToSignUp">sign up here</a>.</p>
 
-                <BasicButton><input type="submit" value="Go"></BasicButton>
+                <UiButton><input type="submit" value="Go"></UiButton>
             </form>
         </div>
     </ModalBasic>

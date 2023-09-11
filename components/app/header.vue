@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { useUserStore } from '~/stores/user.store';
 import { useModalStore } from '~/stores/modal.store';
+import { useActiveGameStore } from '~/stores/active-game.store';
 import { MoonIcon, SunIcon, EllipsisHorizontalCircleIcon } from '@heroicons/vue/24/solid';
-import { useGameStore } from '~/stores/game.store';
 
 const nuxtApp = useNuxtApp();
 const auth = useAuth();
 const user = useUserStore();
 const modal = useModalStore();
 const colorMode = useColorMode();
-const gameStore = useGameStore();
+const activeGameStore = useActiveGameStore();
 
 const colorModeIcon = computed(() => {
     if (colorMode.preference === 'system') {
@@ -40,7 +40,7 @@ function toggleColorPreference() {
 }
 
 async function doLogOut() {
-    if (gameStore.hasActiveGame) {
+    if (activeGameStore.exists) {
         await nuxtApp.$socket.emitWithAck('leaveGame');
     }
 

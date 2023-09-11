@@ -20,7 +20,7 @@ await useAuth().fetchCurrentUser();
       <ModalSignUp :open="modal.signupModalOpen" @close="modal.signupModalOpen = false" />
 
       <client-only>
-        <notifications position="bottom right" :pause-on-hover="true" class="mb-5 mr-5" :max="2" />
+        <notifications position="top center" :pause-on-hover="true" class="mt-5" :duration="5000" width="500px" :max="3" />
       </client-only>
     </div>
   </NuxtLayout>
