@@ -42,7 +42,7 @@ function doSpectateGame(gameId: string) {
 </script>
 
 <template>
-    <div class="flex flex-col w-full min-h-[75%] rounded-md border-2 border-black dark:border-white px-4 py-4">
+    <div class="flex flex-col w-full min-h-[75vh] rounded-md border-2 border-black dark:border-white px-4 py-4">
         <div class="flex justify-between items-center">
             <h1 class="text-2xl">Game Browser</h1>
             <UiButton @click="doCreateGame">Create a Game</UiButton>

@@ -6,6 +6,7 @@ import { ChatMessage } from '~/types/chat-message.interface';
 import { GameState } from '~/types/game-state.enum';
 import { useUserStore } from '~/stores/user.store';
 import { useActiveGameStore } from '~/stores/active-game.store';
+import { PlayerState } from '~/types/player-state.enum';
 
 export default defineNuxtPlugin(() => {
     const nuxtApp = useNuxtApp();
@@ -79,9 +80,9 @@ export default defineNuxtPlugin(() => {
 
     socket.on('cardsNotPlayed', (payload) => nuxtApp.$sendErrorNotification("Card(s) not played", payload.reason));
 
-    socket.on('cardsPlayed', () => {
-        // TODO
-    });
+    socket.on('cardsPlayed', (payload) => nuxtApp.$sendSuccessNotification('Cards played!', `${payload.nickname} has played their cards!`));
+
+    socket.on('discardCards', (payload) => activeGameStore.discardCards(payload.cards));
 
     socket.on('cardsNotJudged', (payload) => nuxtApp.$sendErrorNotification("Card(s) not judged", payload.reason));
 
@@ -121,19 +122,27 @@ export default defineNuxtPlugin(() => {
         gameBrowserStore.incrementRound(payload.gameId);
     });
 
-    socket.on('beginNextRound', () => activeGameStore.incrementRound())
+    socket.on('beginNextRound', (payload) => {
+        activeGameStore.incrementRound();
 
-    socket.on('dealCard', () => {})
+        if (payload.judgeUserId === userStore.user!.id) {
+            activeGameStore.myState = PlayerState.Judge;
+        } else {
+            activeGameStore.myState = PlayerState.Player;
+        }
+    })
 
-    socket.on('dealBlackCard', () => {})
+    socket.on('dealCard', (payload) => activeGameStore.hand.push(payload.card));
 
-    socket.on('roundWinner', () => {}) // TODO: notification state
+    socket.on('dealBlackCard', (payload) => activeGameStore.blackCard = payload.card);
 
-    socket.on('gameWinner', () => {}) // TODO: notification state
+    socket.on('roundWinner', (payload) => nuxtApp.$sendSuccessNotification('Round winner!', `${payload.nickname} won that round. One point awarded.`));
 
-    socket.on('resetWarning', () => {}) // TODO: notification state
+    socket.on('gameWinner', (payload) => nuxtApp.$sendSuccessNotification('We have a winner!', `${payload.nickname} won the game.`));
+    
+    socket.on('resetWarning', (payload) => nuxtApp.$sendWarningNotification('The game will reset!', `The game will reset in ${payload.restInSeconds} seconds.`)) // TODO: notification state
 
-    socket.on('illegalStateTransition', () => {}) // TODO: notification state
+    socket.on('illegalStateTransition', () => nuxtApp.$sendErrorNotification('Oh noes! The game is resetting.', 'The game experienced an illegal state change and is now resetting. Sorry.'));
 
     socket.on('stateTransition', (payload: Record<string, any>) => {
         if (activeGameStore.exists) {
@@ -143,6 +152,12 @@ export default defineNuxtPlugin(() => {
                 socket.emit('leaveGame', { gameId: game.id });
                 nuxtApp.$sendWarningNotification("Game closed", "The host left the game, so you were removed.");
                 return;
+            }
+
+            if (payload.to === GameState.Judging) {
+                activeGameStore.cardsBeingJudged.push(payload.cardsToJudge);
+            } else {
+                activeGameStore.cardsBeingJudged.length = 0;
             }
 
             activeGameStore.setState(payload.to);

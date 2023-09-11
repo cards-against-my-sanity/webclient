@@ -6,6 +6,8 @@ import { GameState } from "~/types/game-state.enum";
 import { GameType } from "~/types/game.interface";
 import { PlayerState } from "~/types/player-state.enum";
 import { useUserStore } from "./user.store";
+import { WhiteCard } from "~/types/white-card.interface";
+import { BlackCard } from "~/types/black-card.interface";
 
 export const useActiveGameStore = defineStore('active-game', () => {
     const userStore = useUserStore();
@@ -13,10 +15,13 @@ export const useActiveGameStore = defineStore('active-game', () => {
     const game = ref<GameType | null>(null);
     const exists = computed(() => game.value !== null);
     const chats = ref<ChatMessage[]>([]);
+    const hand = ref<WhiteCard[]>([]);
+    const blackCard = ref<BlackCard | null>(null);
     const myState = ref<PlayerState>(PlayerState.Player);
     const iAmTheHost = computed(() => exists.value ? game.value!.host.id === userStore.user!.id : false);
     const iAmASpectator = ref<boolean>(false);
     const iAmTheJudge = computed(() => myState.value === PlayerState.Judge);
+    const cardsBeingJudged = ref<WhiteCard[][]>([]);
 
     function addPlayer(player: {id: string, nickname: string}) {
         if (!exists.value) {
@@ -86,13 +91,15 @@ export const useActiveGameStore = defineStore('active-game', () => {
         chats.value.push(chat);
     }
 
-    function clearChats() {
-        chats.value.length = 0;
+    function discardCards(cards: string[]) {
+        hand.value = hand.value.filter(c => !cards.includes(c.id));
     }
 
     function reset() {
         game.value = null;
-        clearChats();
+        chats.value.length = 0;
+        hand.value.length = 0;
+        blackCard.value = null;
         myState.value = PlayerState.Player;
         iAmASpectator.value = false;
     }
@@ -101,10 +108,13 @@ export const useActiveGameStore = defineStore('active-game', () => {
         game,
         exists,
         chats,
+        hand,
+        blackCard,
         myState,
         iAmTheHost,
         iAmASpectator,
         iAmTheJudge,
+        cardsBeingJudged,
         addPlayer,
         removePlayer,
         addSpectator,
@@ -114,7 +124,7 @@ export const useActiveGameStore = defineStore('active-game', () => {
         setSettings,
         setState,
         addChat,
-        clearChats,
+        discardCards,
         reset
     }
 })
