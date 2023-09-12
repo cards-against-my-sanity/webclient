@@ -36,7 +36,7 @@ function confirmJudgement() {
             <div v-if="!activeGameStore.iAmTheJudge" class="col-span-5 flex justify-center items-center">
                 <p>Please wait for the judge to decide the winner of the round.</p>
             </div>
-            <div v-else v-for="(cards, setIdx) in cardsBeingJudged" :key="'white-cards-' + setIdx">
+            <div v-else v-for="(cards, setIdx) in cardsBeingJudged" :key="'white-cards-' + setIdx" class="border-2 col-span-2 dark:border-white p-4 flex">
                 <GameCardWhiteCard v-for="(card, cardIdx) in cards" :key="'white-cards-' + setIdx + '-card-' + cardIdx" :card="card" @click="toggleCards(cards.map(c => c.id))" :is-selected="cardsToggled.includes(card.id)" />
             </div>
         </div>

@@ -10,17 +10,19 @@ const props = withDefaults(defineProps<{
     placeholder: undefined
 });
 
-const emit = defineEmits<{ (e: 'update:modelValue', value: string): InputEvent }>();
+const emit = defineEmits<{ (e: 'update:modelValue', value: number): InputEvent }>();
 
 function handleInput(event: InputEvent) {
-    emit('update:modelValue', (event.target as HTMLInputElement).value);
+    emit('update:modelValue', parseInt((event.target as HTMLInputElement).value));
 }
 </script>
 
 <template>
-    <input type="number" :value="props.modelValue" @input="handleInput($event as InputEvent)" :disabled="disabled"
-        :min="props.min" :max="props.max"
-        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring 
+    <div class="relative">
+        <input type="number" :value="props.modelValue" @input="handleInput($event as InputEvent)" :disabled="disabled"
+            :min="props.min" :max="props.max" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring 
                             focus:ring-indigo-200 focus:ring-opacity-50 text-black dark:text-gray"
-        :placeholder="props.placeholder || undefined" />
+            :placeholder="props.placeholder || undefined" />
+        <slot></slot>
+    </div>
 </template>

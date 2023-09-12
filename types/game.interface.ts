@@ -1,6 +1,8 @@
 import { DeckType } from "./deck.interface";
+import { GameSettings } from "./game-settings.interface";
 import { GameState } from "./game-state.enum";
-import { UserType } from "./user.interface";
+import PlayerType from "./player.interface";
+import SpectatorType from "./spectator.interface";
 
 export interface GameType {
     id: string;
@@ -14,15 +16,11 @@ export interface GameType {
 
     state: GameState;
 
-    settings: {
-        maxPlayers: number;
-        maxSpectators: number;
-        maxScore: number;
-    };
+    settings: GameSettings;
 
-    players: { id: string, nickname: string }[];
+    players: PlayerType[];
 
-    spectators: { id: string, nickname: string }[];
+    spectators: SpectatorType[];
 
     roundNumber: number;
 }

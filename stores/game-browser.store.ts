@@ -3,6 +3,8 @@ import { DeckType } from "~/types/deck.interface";
 import { GameSettings } from "~/types/game-settings.interface";
 import { GameState } from "~/types/game-state.enum";
 import { GameType } from "~/types/game.interface";
+import PlayerType from "~/types/player.interface";
+import SpectatorType from "~/types/spectator.interface";
 
 export const useGameBrowserStore = defineStore('game-browser', () => {
     const games = ref<GameType[]>([]);
@@ -25,7 +27,7 @@ export const useGameBrowserStore = defineStore('game-browser', () => {
         games.value = games.value.filter(g => g.id !== gameId);
     }
 
-    function addPlayer(gameId: string, player: {id: string, nickname: string}) {
+    function addPlayer(gameId: string, player: PlayerType) {
         update(gameId, game => {
             game.players.push(player);
             return game;
@@ -39,7 +41,7 @@ export const useGameBrowserStore = defineStore('game-browser', () => {
         })
     }
 
-    function addSpectator(gameId: string, spectator: {id: string, nickname: string}) {
+    function addSpectator(gameId: string, spectator: SpectatorType) {
         update(gameId, game => {
             game.spectators.push(spectator);
             return game;
