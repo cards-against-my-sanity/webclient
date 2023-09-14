@@ -7,18 +7,16 @@ import ISpectator from "~/shared-types/game/spectator/spectator.interface";
 import IDeck from "~/shared-types/deck/deck.interface";
 import IGameSettings from "~/shared-types/game/game-settings.interface";
 import { GameState } from "~/shared-types/game/game-state.enum";
-import { IChatMessage } from "~/shared-types/game/component/message/chat-message.interface";
 import IWhiteCard from "~/shared-types/card/white/white-card.interface";
 import IBlackCard from "~/shared-types/card/black/black-card.interface";
-import ISystemMessage from "~/shared-types/game/component/message/system-message.interface";
+import IMessage from "~/shared-types/game/component/message/message.interface";
 
 export const useActiveGameStore = defineStore('active-game', () => {
     const userStore = useUserStore();
 
     const game = ref<IGame | null>(null);
     const exists = computed(() => game.value !== null);
-    const chats = ref<IChatMessage[]>([]);
-    const systemMessages = ref<ISystemMessage[]>([]);
+    const messages = ref<IMessage[]>([]);
     const hand = ref<IWhiteCard[]>([]);
     const blackCard = ref<IBlackCard | null>(null);
     const iAmTheHost = computed(() => exists.value ? game.value!.host.id === userStore.user!.id : false);
@@ -89,7 +87,7 @@ export const useActiveGameStore = defineStore('active-game', () => {
         if (!exists.value) {
             return;
         }
-
+        
         game.value!.decks = decks;
     }
 
@@ -109,20 +107,15 @@ export const useActiveGameStore = defineStore('active-game', () => {
         game.value!.state = state;
     }
 
-    function addChat(payload: IChatMessage) {
-        chats.value.push(payload);
-    }
-
-    function addSystemMessage(message: ISystemMessage) {
-        systemMessages.value.push(message);
+    function addMessage(payload: IMessage) {
+        messages.value.push(payload);
     }
 
     function addSystemMessageDirectly(content: string) {
-        addSystemMessage({
+        addMessage({
+            type: 'system',
             content,
-            context: {
-                timestamp: new Date().getTime()
-            }
+            timestamp: new Date().getTime()
         });
     }
 
@@ -144,7 +137,7 @@ export const useActiveGameStore = defineStore('active-game', () => {
 
     function resetStore() {
         game.value = null;
-        chats.value.length = 0;
+        messages.value.length = 0;
         hand.value.length = 0;
         blackCard.value = null;
         cardsBeingJudged.value.length = 0;
@@ -153,8 +146,7 @@ export const useActiveGameStore = defineStore('active-game', () => {
     return {
         game,
         exists,
-        chats,
-        systemMessages,
+        messages,
         hand,
         blackCard,
         iAmTheHost,
@@ -173,8 +165,7 @@ export const useActiveGameStore = defineStore('active-game', () => {
         setDecks,
         setSettings,
         setState,
-        addChat,
-        addSystemMessage,
+        addMessage,
         addSystemMessageDirectly,
         discardCards,
         resetGameData,

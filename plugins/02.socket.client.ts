@@ -14,11 +14,8 @@ import StateTransitionPayload from '~/shared-types/game/component/state-transiti
 import IGame from '~/shared-types/game/game.interface';
 import DecksPayload from '~/shared-types/deck/decks.payload';
 import IGameSettings from '~/shared-types/game/game-settings.interface';
-import { IChatMessage } from '~/shared-types/game/component/message/chat-message.interface';
-import CardIdsPayload from '~/shared-types/card/id/card-ids.payload';
 import PlayerIdPayload from '~/shared-types/game/player/player-id.payload';
 import SpectatorIdPayload from '~/shared-types/game/spectator/spectator-id.payload';
-import ISystemMessage from '~/shared-types/game/component/message/system-message.interface';
 import SpectatorPayload from '~/shared-types/game/spectator/spectator.payload';
 import { PlayerState } from '~/shared-types/game/player/player-state.enum';
 import WhiteCardPayload from '~/shared-types/card/white/white-card.payload';
@@ -26,6 +23,9 @@ import BlackCardPayload from '~/shared-types/card/black/black-card.payload';
 import WhiteCardsPayload from '~/shared-types/card/white/white-cards.payload';
 import { GameState } from '~/shared-types/game/game-state.enum';
 import WhiteCardsMatrixPayload from '~/shared-types/card/white/white-cards-matrix.payload';
+import ConnectionStatusPayload from '~/shared-types/misc/connection-status.payload';
+import UnauthorizedPayload from '~/shared-types/misc/unauthorized.payload';
+import IMessage from '~/shared-types/game/component/message/message.interface';
 
 export default defineNuxtPlugin(() => {
     const nuxtApp = useNuxtApp();
@@ -48,10 +48,10 @@ export default defineNuxtPlugin(() => {
         stopGame: async (): Promise<SocketResponse<null>> => {
             return socket.emitWithAck('stopGame');
         },
-        addDeckToGame: async (deckId: string): Promise<SocketResponse<GameIdPayload & DecksPayload>> => {
+        addDeckToGame: async (deckId: string): Promise<SocketResponse<null>> => {
             return socket.emitWithAck('addDeckToGame', { deckId });
         },
-        removeDeckFromGame: async (deckId: string): Promise<SocketResponse<GameIdPayload & DecksPayload>> => {
+        removeDeckFromGame: async (deckId: string): Promise<SocketResponse<null>> => {
             return socket.emitWithAck('removeDeckFromGame', { deckId });
         },
         changeGameSettings: async (settings: Partial<IGameSettings>): Promise<SocketResponse<null>> => {
@@ -80,117 +80,132 @@ export default defineNuxtPlugin(() => {
         }
     };
 
-    socket.on('gameAdded', (game: IGame) => gameBrowserStore.add(game));
+    socket.on('gameAdded', (resp: SocketResponse<IGame>) => gameBrowserStore.add(resp.data!));
 
-    socket.on('decksUpdated', (payload: GameIdPayload & DecksPayload) => {
+    socket.on('decksUpdated', (resp: SocketResponse<GameIdPayload & DecksPayload>) => {
+        const { gameId, decks } = resp.data!;
         if (activeGameStore.exists) {
-            activeGameStore.setDecks(payload.decks);
+            activeGameStore.setDecks(decks);
         } else {
-            gameBrowserStore.setDecks(payload.gameId, payload.decks);
+            gameBrowserStore.setDecks(gameId, decks);
         }
     });
 
-    socket.on('settingsUpdated', (payload: GameIdPayload & GameSettingsPayload) => {
+    socket.on('settingsUpdated', (resp: SocketResponse<GameIdPayload & GameSettingsPayload>) => {
+        const { gameId, settings } = resp.data!;
         if (activeGameStore.exists) {
-            activeGameStore.setSettings(payload.settings);
+            activeGameStore.setSettings(settings);
         } else {
-            gameBrowserStore.setSettings(payload.gameId, payload.settings);
+            gameBrowserStore.setSettings(gameId, settings);
         }
     });
 
-    socket.on('chat', (payload: IChatMessage) => activeGameStore.addChat(payload));
+    socket.on('chat', (resp: SocketResponse<IMessage>) => activeGameStore.addMessage(resp.data!));
 
-    socket.on('systemMessage', (payload: ISystemMessage) => activeGameStore.addSystemMessage(payload));
+    socket.on('systemMessage', (resp: SocketResponse<IMessage>) => activeGameStore.addMessage(resp.data!));
 
     // TODO: update player status to show no longer waiting on them to play
-    socket.on('cardsPlayed', (payload: CardIdsPayload & PartialPlayerPayload) => nuxtApp.$sendSuccessNotification('Cards played!', `${payload.player.nickname} has played their cards!`));
+    socket.on('cardsPlayed', (resp: SocketResponse<PartialPlayerPayload>) => null);
 
-    socket.on('playerJoined', (payload: GameIdPayload & PlayerPayload) => {
+    socket.on('playerJoined', (resp: SocketResponse<GameIdPayload & PlayerPayload>) => {
+        const { gameId, player } = resp.data!;
         if (activeGameStore.exists) {
-            activeGameStore.addPlayer(payload.player);
-            activeGameStore.addSystemMessageDirectly(`${payload.player.nickname} has joined the game`);
+            activeGameStore.addPlayer(player);
+            activeGameStore.addSystemMessageDirectly(`${player.nickname} has joined the game`);
         } else {
-            gameBrowserStore.addPlayer(payload.gameId, payload.player);
+            gameBrowserStore.addPlayer(gameId, player);
         }
     });
 
-    socket.on('playerLeft', (payload: GameIdPayload & PlayerIdPayload) => {
+    socket.on('playerLeft', (resp: SocketResponse<GameIdPayload & PlayerIdPayload>) => {
+        const { gameId, playerId } = resp.data!;
         if (activeGameStore.exists) {
-            activeGameStore.addSystemMessageDirectly(`${activeGameStore.getPlayerById(payload.playerId)!.nickname} has left the game`);
-            activeGameStore.removePlayer(payload.playerId);
+            activeGameStore.addSystemMessageDirectly(`${activeGameStore.getPlayerById(playerId)!.nickname} has left the game`);
+            activeGameStore.removePlayer(playerId);
         } else {
-            gameBrowserStore.removePlayer(payload.gameId, payload.playerId);
+            gameBrowserStore.removePlayer(gameId, playerId);
         }
     });
 
-    socket.on('gameRemoved', (payload: GameIdPayload) => gameBrowserStore.remove(payload.gameId));
+    socket.on('gameRemoved', (resp: SocketResponse<GameIdPayload>) => gameBrowserStore.remove(resp.data!.gameId));
 
-    socket.on('spectatorJoined', (payload: GameIdPayload & SpectatorPayload) => {
+    socket.on('spectatorJoined', (resp: SocketResponse<GameIdPayload & SpectatorPayload>) => {
+        const { gameId, spectator } = resp.data!;
         if (activeGameStore.exists) {
-            activeGameStore.addSpectator(payload.spectator);
-            activeGameStore.addSystemMessageDirectly(`${payload.spectator.nickname} has started spectating the game`);
+            activeGameStore.addSpectator(spectator);
+            activeGameStore.addSystemMessageDirectly(`${spectator.nickname} has started spectating the game`);
         } else {
-            gameBrowserStore.addSpectator(payload.gameId, payload.spectator);
+            gameBrowserStore.addSpectator(gameId, spectator);
         }
     });
 
-    socket.on('spectatorLeft', (payload: GameIdPayload & SpectatorIdPayload) => {
+    socket.on('spectatorLeft', (resp: SocketResponse<GameIdPayload & SpectatorIdPayload>) => {
+        const { gameId, spectatorId } = resp.data!;
         if (activeGameStore.exists) {
-            activeGameStore.addSystemMessageDirectly(`${activeGameStore.getSpectatorById(payload.spectatorId)!.nickname} has stopped spectating the game`);
-            activeGameStore.removeSpectator(payload.spectatorId);
+            activeGameStore.addSystemMessageDirectly(`${activeGameStore.getSpectatorById(spectatorId)!.nickname} has stopped spectating the game`);
+            activeGameStore.removeSpectator(spectatorId);
         } else {
-            gameBrowserStore.removeSpectator(payload.gameId, payload.spectatorId);
+            gameBrowserStore.removeSpectator(gameId, spectatorId);
         }
     });
 
-    socket.on('beginNextRound', (payload: GameIdPayload & JudgeIdPayload & RoundNumberPayload) => {
-        activeGameStore.incrementRound();
-        activeGameStore.resetPlayerStates();
-        activeGameStore.setPlayerState(payload.judgeId, PlayerState.Judge);
-        activeGameStore.addSystemMessageDirectly(`The next round has begun. This round's judge is ${activeGameStore.getPlayerById(payload.judgeId)!.nickname}.`);
+    socket.on('beginNextRound', (resp: SocketResponse<GameIdPayload & JudgeIdPayload & RoundNumberPayload>) => {
+        const { gameId, judgeId, roundNumber } = resp.data!;
+        if (activeGameStore.exists) {
+            activeGameStore.incrementRound();
+            activeGameStore.resetPlayerStates();
+            activeGameStore.setPlayerState(judgeId, PlayerState.Judge);
+            activeGameStore.addSystemMessageDirectly(`The next round has begun. This round's judge is ${activeGameStore.getPlayerById(judgeId)!.nickname}.`);
+        } else {
+            gameBrowserStore.incrementRound(gameId);
+        }
     });
 
-    socket.on('dealCard', (payload: WhiteCardPayload & GameIdPayload & PartialPlayerPayload) => activeGameStore.hand.push(payload.card));
+    socket.on('dealCard', (resp: SocketResponse<WhiteCardPayload & GameIdPayload & PartialPlayerPayload>) => activeGameStore.hand.push(resp.data!.card));
 
-    socket.on('dealBlackCard', (payload: BlackCardPayload & GameIdPayload) => activeGameStore.blackCard = payload.card);
+    socket.on('dealBlackCard', (resp: SocketResponse<BlackCardPayload & GameIdPayload>) => activeGameStore.blackCard = resp.data!.card);
 
-    socket.on('cardsToJudge', (payload: GameIdPayload & WhiteCardsMatrixPayload) => activeGameStore.cardsBeingJudged = payload.matrix);
+    socket.on('cardsToJudge', (resp: SocketResponse<GameIdPayload & WhiteCardsMatrixPayload>) => activeGameStore.cardsBeingJudged = resp.data!.matrix);
 
     // TODO: ??? cheer or something
-    socket.on('roundWinner', (payload: GameIdPayload & PartialPlayerPayload & WhiteCardsPayload) => null);
+    socket.on('roundWinner', (resp: SocketResponse<GameIdPayload & PartialPlayerPayload & WhiteCardsPayload>) => null);
 
-    socket.on('stateTransition', (payload: GameIdPayload & StateTransitionPayload) => {
+    socket.on('stateTransition', async (resp: SocketResponse<GameIdPayload & StateTransitionPayload>) => {
+        const { gameId, to, from } = resp.data!;
+
         if (activeGameStore.exists) {
             const game = activeGameStore.game!;
 
-            if (payload.to === GameState.Abandoned && payload.gameId === game.id && userStore.user!.id !== game.host.id) {
-                socket.emit('leaveGame', { gameId: game.id });
+            if (to === GameState.Abandoned && gameId === game.id && userStore.user!.id !== game.host.id) {
+                await socketOps.leaveGame();
                 nuxtApp.$sendWarningNotification("Game closed", "The host left the game, so you were removed.");
                 return;
             }
 
-            if (payload.to === GameState.Reset) {
+            if (to === GameState.Reset) {
                 activeGameStore.resetGameData();
             }
   
-            activeGameStore.setState(payload.to);
+            activeGameStore.setState(to);
             return;
         }
 
-        gameBrowserStore.setState(payload.gameId, payload.to);
+        gameBrowserStore.setState(gameId, to);
     });
 
-    socket.on('illegalStateTransition', (payload: GameIdPayload & StateTransitionPayload) => nuxtApp.$sendErrorNotification('Oh noes! The game is resetting.', 'The game experienced an illegal state change and is now resetting. Sorry.'));
+    socket.on('illegalStateTransition', (resp: SocketResponse<GameIdPayload & StateTransitionPayload>) => nuxtApp.$sendErrorNotification('Oh noes! The game is resetting.', 'The game experienced an illegal state change and is now resetting. Sorry.'));
 
-    socket.on('connectionStatus', (payload) => {
-        if (payload.type === 'closed') {
-            nuxtApp.$sendWarningNotification('Websocket connection closed', payload.message);
+    socket.on('connectionStatus', (resp: SocketResponse<ConnectionStatusPayload>) => {
+        const { status, type, message } = resp.data!;
+
+        if (status === 'closed') {
+            nuxtApp.$sendWarningNotification('Websocket connection closed', message || "Unknown reason");
         } else {
             nuxtApp.$sendSuccessNotification('Websocket connection established', 'Connection to server established!');
         }
     });
 
-    socket.on('unauthorized', (payload) => nuxtApp.$sendErrorNotification("You can't do that", payload.message));
+    socket.on('unauthorized', (resp: SocketResponse<UnauthorizedPayload>) => nuxtApp.$sendErrorNotification("You can't do that", resp.data!.message || "Unknown"));
 
     return {
         provide: {

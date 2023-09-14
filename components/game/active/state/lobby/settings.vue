@@ -36,7 +36,10 @@ async function updateSettings() {
 
     waitingForSettingsAck.value = true;
 
-    await nuxtApp.$socketOps.changeGameSettings(game.value.settings);
+    const resp = await nuxtApp.$socketOps.changeGameSettings(game.value.settings);
+    if (resp.status !== "ok") {
+        activeGameStore.addSystemMessageDirectly(`Game settings not updated. ${resp.message}`);
+    }
 
     waitingForSettingsAck.value = false;
 }
