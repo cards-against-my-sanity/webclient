@@ -1,31 +1,32 @@
 import { defineStore } from "pinia";
-import { Message } from "~/types/message.interface";
-import { DeckType } from "~/types/deck.interface";
-import { GameSettings } from "~/types/game-settings.interface";
-import { GameState } from "~/types/game-state.enum";
-import { GameType } from "~/types/game.interface";
-import { PlayerState } from "~/types/player-state.enum";
 import { useUserStore } from "./user.store";
-import { WhiteCard } from "~/types/white-card.interface";
-import { BlackCard } from "~/types/black-card.interface";
-import PlayerType from "~/types/player.interface";
-import SpectatorType from "~/types/spectator.interface";
-import dayjs from 'dayjs';
+import IGame from "~/shared-types/game/game.interface";
+import IPlayer from "~/shared-types/game/player/player.interface";
+import { PlayerState } from "~/shared-types/game/player/player-state.enum";
+import ISpectator from "~/shared-types/game/spectator/spectator.interface";
+import IDeck from "~/shared-types/deck/deck.interface";
+import IGameSettings from "~/shared-types/game/game-settings.interface";
+import { GameState } from "~/shared-types/game/game-state.enum";
+import { IChatMessage } from "~/shared-types/game/component/message/chat-message.interface";
+import IWhiteCard from "~/shared-types/card/white/white-card.interface";
+import IBlackCard from "~/shared-types/card/black/black-card.interface";
+import ISystemMessage from "~/shared-types/game/component/message/system-message.interface";
 
 export const useActiveGameStore = defineStore('active-game', () => {
     const userStore = useUserStore();
 
-    const game = ref<GameType | null>(null);
+    const game = ref<IGame | null>(null);
     const exists = computed(() => game.value !== null);
-    const chats = ref<Partial<Message>[]>([]);
-    const hand = ref<WhiteCard[]>([]);
-    const blackCard = ref<BlackCard | null>(null);
+    const chats = ref<IChatMessage[]>([]);
+    const systemMessages = ref<ISystemMessage[]>([]);
+    const hand = ref<IWhiteCard[]>([]);
+    const blackCard = ref<IBlackCard | null>(null);
     const iAmTheHost = computed(() => exists.value ? game.value!.host.id === userStore.user!.id : false);
     const iAmASpectator = computed(() => exists.value ? game.value!.spectators.findIndex(s => s.id === userStore.user!.id) !== -1 : false);
     const iAmTheJudge = computed(() => exists.value ? game.value!.players.find(p => p.id === userStore.user!.id)!.state : false);
-    const cardsBeingJudged = ref<WhiteCard[][]>([]);
+    const cardsBeingJudged = ref<IWhiteCard[][]>([]);
 
-    function addPlayer(player: PlayerType) {
+    function addPlayer(player: IPlayer) {
         if (!exists.value) {
             return;
         }
@@ -33,30 +34,30 @@ export const useActiveGameStore = defineStore('active-game', () => {
         game.value!.players.push(player);
     }
 
-    function getPlayerById(id: string) {
-        return game.value!.players.find(p => p.id === id);
+    function getPlayerById(id: string): IPlayer | null {
+        return game.value!.players.find(p => p.id === id) || null;
     }
 
-    function removePlayer(userId: string) {
+    function removePlayer(id: string): void {
         if (!exists.value) {
             return;
         }
 
-        game.value!.players = game.value!.players.filter(p => p.id !== userId);
+        game.value!.players = game.value!.players.filter(p => p.id !== id);
     }
 
     function resetPlayerStates() {
         game.value!.players.forEach(p => p.state = PlayerState.Player);
     }
 
-    function setPlayerState(userId: string, state: PlayerState) {
-        const player = game.value!.players.find(p => p.id === userId);
+    function setPlayerState(id: string, state: PlayerState) {
+        const player = game.value!.players.find(p => p.id === id);
         if (player) {
             player.state = state;
         }
     }
 
-    function addSpectator(spectator: SpectatorType) {
+    function addSpectator(spectator: ISpectator) {
         if (!exists.value) {
             return;
         }
@@ -68,12 +69,12 @@ export const useActiveGameStore = defineStore('active-game', () => {
         return game.value!.spectators.find(s => s.id === id);
     }
 
-    function removeSpectator(userId: string) {
+    function removeSpectator(id: string) {
         if (!exists.value) {
             return;
         }
 
-        game.value!.spectators = game.value!.spectators.filter(s => s.id !== userId);
+        game.value!.spectators = game.value!.spectators.filter(s => s.id !== id);
     }
 
     function incrementRound() {
@@ -84,7 +85,7 @@ export const useActiveGameStore = defineStore('active-game', () => {
         game.value!.roundNumber++;
     }
 
-    function setDecks(decks: DeckType[]) {
+    function setDecks(decks: IDeck[]) {
         if (!exists.value) {
             return;
         }
@@ -92,7 +93,7 @@ export const useActiveGameStore = defineStore('active-game', () => {
         game.value!.decks = decks;
     }
 
-    function setSettings(settings: GameSettings) {
+    function setSettings(settings: IGameSettings) {
         if (!exists.value) {
             return;
         }
@@ -108,10 +109,20 @@ export const useActiveGameStore = defineStore('active-game', () => {
         game.value!.state = state;
     }
 
-    function addChat(chat: Partial<Message>) {
-        chats.value.push({
-            ...chat,
-            received: dayjs().format('h:mm:ss A')
+    function addChat(payload: IChatMessage) {
+        chats.value.push(payload);
+    }
+
+    function addSystemMessage(message: ISystemMessage) {
+        systemMessages.value.push(message);
+    }
+
+    function addSystemMessageDirectly(content: string) {
+        addSystemMessage({
+            content,
+            context: {
+                timestamp: new Date().getTime()
+            }
         });
     }
 
@@ -143,6 +154,7 @@ export const useActiveGameStore = defineStore('active-game', () => {
         game,
         exists,
         chats,
+        systemMessages,
         hand,
         blackCard,
         iAmTheHost,
@@ -162,6 +174,8 @@ export const useActiveGameStore = defineStore('active-game', () => {
         setSettings,
         setState,
         addChat,
+        addSystemMessage,
+        addSystemMessageDirectly,
         discardCards,
         resetGameData,
         resetStore

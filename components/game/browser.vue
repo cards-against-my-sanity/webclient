@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useActiveGameStore } from '~/stores/active-game.store';
 import { useGameBrowserStore } from '~/stores/game-browser.store';
 import { useModalStore } from '~/stores/modal.store';
 import { useUserStore } from '~/stores/user.store';
@@ -7,33 +8,49 @@ const nuxtApp = useNuxtApp();
 const userStore = useUserStore();
 const modalStore = useModalStore();
 const gameBrowserStore = useGameBrowserStore();
+const activeGameStore = useActiveGameStore();
 
 onMounted(async () => {
-    gameBrowserStore.games = await nuxtApp.$socket.emitWithAck('listGames')
+    gameBrowserStore.games = (await nuxtApp.$socketOps.listGames()).data!;
 });
 
-function doCreateGame() {
+async function doCreateGame() {
     if (userStore.isAuthenticated) {
-        // actually do it
-        nuxtApp.$socket.emit("createGame");
+        const resp = await nuxtApp.$socketOps.createGame();
+
+        if (resp.status !== "ok") {
+            nuxtApp.$sendErrorNotification("Failed to create game.", resp.message);
+        } else {
+            activeGameStore.game = resp.data;
+        }
     } else {
         modalStore.loginModalOpen = true;
         modalStore.flashMessage = "You need to sign in to create a game! (Sorry, it's quick though.)";
     }
 }
 
-function doJoinGame(gameId: string) {
+async function doJoinGame(gameId: string) {
     if (userStore.isAuthenticated) {
-        nuxtApp.$socket.emit("joinGame", { game_id: gameId })
+        const resp = await nuxtApp.$socketOps.joinGame(gameId);
+        if (resp.status !== "ok") {
+            nuxtApp.$sendErrorNotification("Failed to join game.", resp.message);
+        } else {
+            activeGameStore.game = resp.data;
+        }
     } else {
         modalStore.loginModalOpen = true;
         modalStore.flashMessage = "You need to sign in to join a game! (Sorry, it's quick though.)";
     }
 }
 
-function doSpectateGame(gameId: string) {
+async function doSpectateGame(gameId: string) {
     if (userStore.isAuthenticated) {
-        nuxtApp.$socket.emit("spectateGame", { game_id: gameId })
+        const resp = await nuxtApp.$socketOps.spectateGame(gameId);
+        if (resp.status !== "ok") {
+            nuxtApp.$sendErrorNotification("Failed to spectate game.", resp.message);
+        } else {
+            activeGameStore.game = resp.data;
+        }
     } else {
         modalStore.loginModalOpen = true;
         modalStore.flashMessage = "You need to sign in to spectate a game! (Sorry, it's quick though.)";

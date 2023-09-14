@@ -1,19 +1,19 @@
 import { defineStore } from "pinia";
-import { DeckType } from "~/types/deck.interface";
-import { GameSettings } from "~/types/game-settings.interface";
-import { GameState } from "~/types/game-state.enum";
-import { GameType } from "~/types/game.interface";
-import PlayerType from "~/types/player.interface";
-import SpectatorType from "~/types/spectator.interface";
+import IDeck from "~/shared-types/deck/deck.interface";
+import IGameSettings from "~/shared-types/game/game-settings.interface";
+import IGame from "~/shared-types/game/game.interface";
+import IPlayer from "~/shared-types/game/player/player.interface";
+import ISpectator from "~/shared-types/game/spectator/spectator.interface";
+import { GameState } from "~/shared-types/game/game-state.enum";
 
 export const useGameBrowserStore = defineStore('game-browser', () => {
-    const games = ref<GameType[]>([]);
+    const games = ref<IGame[]>([]);
 
-    function add(game: GameType) {
+    function add(game: IGame) {
         games.value.push(game);
     }
 
-    function update(gameId: string, modifier: (game: GameType) => GameType) {
+    function update(gameId: string, modifier: (game: IGame) => IGame) {
         const gameIdx = games.value.findIndex(g => g.id === gameId);
 
         if (gameIdx === -1) {
@@ -27,7 +27,7 @@ export const useGameBrowserStore = defineStore('game-browser', () => {
         games.value = games.value.filter(g => g.id !== gameId);
     }
 
-    function addPlayer(gameId: string, player: PlayerType) {
+    function addPlayer(gameId: string, player: IPlayer) {
         update(gameId, game => {
             game.players.push(player);
             return game;
@@ -41,7 +41,7 @@ export const useGameBrowserStore = defineStore('game-browser', () => {
         })
     }
 
-    function addSpectator(gameId: string, spectator: SpectatorType) {
+    function addSpectator(gameId: string, spectator: ISpectator) {
         update(gameId, game => {
             game.spectators.push(spectator);
             return game;
@@ -62,14 +62,14 @@ export const useGameBrowserStore = defineStore('game-browser', () => {
         });
     }
 
-    function setDecks(gameId: string, decks: DeckType[]) {
+    function setDecks(gameId: string, decks: IDeck[]) {
         update(gameId, game => {
             game.decks = decks;
             return game;
         });
     }
 
-    function setSettings(gameId: string, settings: GameSettings) {
+    function setSettings(gameId: string, settings: IGameSettings) {
         update(gameId, game => {
             game.settings = settings;
             return game;

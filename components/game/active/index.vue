@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import { GameState } from '~/shared-types/game/game-state.enum';
 import { useActiveGameStore } from '~/stores/active-game.store';
-import { GameState } from '~/types/game-state.enum';
 
 const activeGameStore = useActiveGameStore();
 const game = computed(() => activeGameStore.game!);

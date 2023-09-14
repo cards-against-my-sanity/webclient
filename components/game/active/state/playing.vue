@@ -25,14 +25,15 @@ function toggleCard(card: string) {
 }
 
 const readyToConfirm = computed(() => cardsToggled.value.length === blackCard.value.pick);
-function confirmPlay() {
+async function confirmPlay() {
     if (!readyToConfirm.value) {
         return;
     }
 
-    nuxtApp.$socket.emit('playCards', {
-        cards: cardsToggled.value
-    })
+    const resp = await nuxtApp.$socketOps.playCards(cardsToggled.value);
+    if (resp.status !== "ok") {
+        activeGameStore.addSystemMessageDirectly(`Cards not played. ${resp.message}`);
+    }
 }
 </script>
 

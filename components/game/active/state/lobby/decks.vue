@@ -14,13 +14,19 @@ async function updateDeckStatus(deckId: string, event: InputEvent) {
     waitingForDeckAck.value = true;
 
     if ((event.target as HTMLInputElement).checked) {
-        await nuxtApp.$socket.emitWithAck('addDeckToGame', {
-            deck_id: deckId
-        });
+        const resp = await nuxtApp.$socketOps.addDeckToGame(deckId);
+        if (resp.status !== "ok") {
+            activeGameStore.addSystemMessageDirectly(`Deck not added. ${resp.message}`);
+        } else {
+            game.value!.decks = resp.data!.decks;
+        }
     } else {
-        await nuxtApp.$socket.emitWithAck('removeDeckFromGame', {
-            deck_id: deckId
-        });
+        const resp = await nuxtApp.$socketOps.removeDeckFromGame(deckId);
+        if (resp.status !== "ok") {
+            activeGameStore.addSystemMessageDirectly(`Deck not removed. ${resp.message}`);
+        } else {
+            game.value!.decks = resp.data!.decks;
+        }
     }
 
     waitingForDeckAck.value = false;

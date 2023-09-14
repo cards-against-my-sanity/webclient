@@ -1,19 +1,19 @@
-import { DeckType } from "~/types/deck.interface";
+import IDeck from "~/shared-types/deck/deck.interface";
 
 export const useDecks = () => {
     const fetch = $fetch.create({ baseURL: useRuntimeConfig().public.apiBase });
 
-    async function fetchDecks(): Promise<DeckType[]|null> {
+    async function fetchDecks(): Promise<IDeck[]|null> {
         try {
-            return fetch<DeckType[]>("decks");
+            return fetch<IDeck[]>("decks");
         } catch (err) {
             return null;
         }
     }
 
-    async function fetchOneDeck(id: string): Promise<DeckType|null> {
+    async function fetchOneDeck(id: string): Promise<IDeck|null> {
         try {
-            return fetch<DeckType>(`decks/${id}`);
+            return fetch<IDeck>(`decks/${id}`);
         } catch (err) {
             return null;
         }

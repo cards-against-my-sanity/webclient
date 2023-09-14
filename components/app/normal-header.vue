@@ -41,7 +41,7 @@ function toggleColorPreference() {
 
 async function doLogOut() {
     if (activeGameStore.exists) {
-        await nuxtApp.$socket.emitWithAck('leaveGame');
+        await nuxtApp.$socketOps.leaveGame();
     }
 
     await auth.logOut();

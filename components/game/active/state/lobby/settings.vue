@@ -36,41 +36,9 @@ async function updateSettings() {
 
     waitingForSettingsAck.value = true;
 
-    await nuxtApp.$socket.emitWithAck('changeGameSettings', {
-        settings: game.value.settings
-    });
+    await nuxtApp.$socketOps.changeGameSettings(game.value.settings);
 
     waitingForSettingsAck.value = false;
-}
-
-const plaintextPassword = ref<string>("");
-async function updatePassword() {
-    waitingForSettingsAck.value = true;
-
-    await nuxtApp.$socket.emitWithAck('changeGameSettings', {
-        settings: {
-            password: plaintextPassword.value
-        }
-    });
-
-    waitingForSettingsAck.value = false;
-
-    nuxtApp.$sendSuccessNotification("The password was set.", "Note: If you modify the password field again, it will be overridden.")
-    setTimeout(() => plaintextPassword.value = "", 500);
-}
-
-async function clearPassword() {
-    waitingForSettingsAck.value = true;
-
-    await nuxtApp.$socket.emitWithAck('changeGameSettings', {
-        settings: {
-            password: ""
-        }
-    });
-
-    waitingForSettingsAck.value = false;
-
-    nuxtApp.$sendSuccessNotification("The password was removed.", "")
 }
 </script>
 
@@ -108,16 +76,6 @@ async function clearPassword() {
                 caption="Can players join mid-game?" />
             <FormSelectInput :model-value="game.settings.allowPlayersToJoinMidGame ? 'true' : 'false'"
                 :disabled="allDisabled || waitingForSettingsAck" @input="handleAllowPlayersToJoinMidGame($event)" :options="{ 'false': 'No', 'true': 'Yes' }" />
-        </div>
-        <div class="col-span-2">
-            <UiCaptionedTitle title="Game Password" title-classes="font-bold text-sm"
-                caption="A password users must enter to join. Leave empty for none. You must click away to apply the password." />
-            <div class="flex justify-evenly gap-x-2">
-                <FormStringInput type="password" v-model="plaintextPassword" @change="updatePassword"
-                    :disabled="allDisabled || waitingForSettingsAck"
-                    :placeholder="game.settings.hasPassword ? 'A password is set.' : 'No password is set.'" />
-                <UiButton v-if="game.settings.hasPassword && activeGameStore.iAmTheHost" :disabled="allDisabled || waitingForSettingsAck" @click="clearPassword" class="text-xs w-40 flex justify-center items-center">Remove Password</UiButton>
-            </div>
         </div>
     </div>
 </template>

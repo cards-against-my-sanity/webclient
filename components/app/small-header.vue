@@ -2,7 +2,7 @@
 import { useUserStore } from '~/stores/user.store';
 import { useActiveGameStore } from '~/stores/active-game.store';
 import { MoonIcon, SunIcon, EllipsisHorizontalCircleIcon, ArrowLeftOnRectangleIcon, PlayIcon, StopIcon } from '@heroicons/vue/24/solid';
-import { GameState } from '~/types/game-state.enum';
+import { GameState } from '~/shared-types/game/game-state.enum';
 
 const nuxtApp = useNuxtApp();
 const user = useUserStore();
@@ -38,8 +38,25 @@ function toggleColorPreference() {
     }
 }
 
-function leaveGame() {
-    nuxtApp.$socket.emit("leaveGame", { gameId: game.value.id });
+async function leaveGame() {
+    const resp = await nuxtApp.$socketOps.leaveGame();
+    if (resp.status === "ok") {
+        activeGameStore.resetStore();
+    }
+}
+
+async function startGame() {
+    const resp = await nuxtApp.$socketOps.startGame();
+    if (resp.status !== "ok") {
+        activeGameStore.addSystemMessageDirectly(`Game not started. ${resp.message}`);
+    }
+}
+
+async function stopGame() {
+    const resp = await nuxtApp.$socketOps.stopGame();
+    if (resp.status !== "ok") {
+        activeGameStore.addSystemMessageDirectly(`Game not stopped. ${resp.message}`);
+    }
 }
 </script>
 
@@ -61,13 +78,13 @@ function leaveGame() {
             </UiButton>
             <div v-if="activeGameStore.iAmTheHost">
                 <div v-if="game.state === GameState.Lobby">
-                    <UiButton class="px-2 py-1" @click="nuxtApp.$socket.emit('startGame')">
+                    <UiButton class="px-2 py-1" @click="startGame">
                         <PlayIcon class="h-4 w-4 inline mr-2"></PlayIcon>
                         <span class="text-sm">Start Game</span>
                     </UiButton>
                 </div>
                 <div v-else>
-                    <UiButton class="px-2 py-1" @click="nuxtApp.$socket.emit('stopGame')">
+                    <UiButton class="px-2 py-1" @click="stopGame">
                         <StopIcon class="h-4 w-4 inline mr-2"></StopIcon>
                         <span class="text-sm">Stop Game Game</span>
                     </UiButton>

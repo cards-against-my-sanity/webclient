@@ -13,14 +13,15 @@ function toggleCards(cards: string[]) {
 }
 
 const readyToConfirm = computed(() => cardsToggled.value.length !== 0);
-function confirmJudgement() {
+async function confirmJudgement() {
     if (!readyToConfirm.value) {
         return;
     }
 
-    nuxtApp.$socket.emit('judgeCards', {
-        cards: cardsToggled.value
-    })
+    const resp = await nuxtApp.$socketOps.judgeCards(cardsToggled.value);
+    if (resp.status !== "ok") {
+        activeGameStore.addSystemMessageDirectly(`Cards not judged. ${resp.message}`);
+    }
 }
 </script>
 

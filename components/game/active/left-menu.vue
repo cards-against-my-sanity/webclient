@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import { ArrowLeftOnRectangleIcon } from '@heroicons/vue/24/solid';
+import { PlayerState } from '~/shared-types/game/player/player-state.enum';
 import { useActiveGameStore } from '~/stores/active-game.store';
-import { PlayerState } from '~/types/player-state.enum';
 
-const nuxtApp = useNuxtApp();
 const activeGameStore = useActiveGameStore();
 const game = computed(() => activeGameStore.game!);
 
