@@ -23,6 +23,7 @@ export const useActiveGameStore = defineStore('active-game', () => {
     const iAmASpectator = computed(() => exists.value ? game.value!.spectators.findIndex(s => s.id === userStore.user!.id) !== -1 : false);
     const iAmTheJudge = computed(() => exists.value ? game.value!.players.find(p => p.id === userStore.user!.id)!.state : false);
     const cardsBeingJudged = ref<IWhiteCard[][]>([]);
+    const iNeedToPlay = ref<boolean>(false);
 
     function addPlayer(player: IPlayer) {
         if (!exists.value) {
@@ -133,6 +134,7 @@ export const useActiveGameStore = defineStore('active-game', () => {
         hand.value.length = 0;
         blackCard.value = null;
         cardsBeingJudged.value.length = 0;
+        iNeedToPlay.value = false;
     }
 
     function resetStore() {
@@ -141,6 +143,7 @@ export const useActiveGameStore = defineStore('active-game', () => {
         hand.value.length = 0;
         blackCard.value = null;
         cardsBeingJudged.value.length = 0;
+        iNeedToPlay.value = false;
     }
 
     return {
@@ -153,6 +156,7 @@ export const useActiveGameStore = defineStore('active-game', () => {
         iAmASpectator,
         iAmTheJudge,
         cardsBeingJudged,
+        iNeedToPlay,
         addPlayer,
         getPlayerById,
         removePlayer,

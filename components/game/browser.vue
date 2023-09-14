@@ -19,7 +19,7 @@ async function doCreateGame() {
         const resp = await nuxtApp.$socketOps.createGame();
 
         if (resp.status !== "ok") {
-            nuxtApp.$sendErrorNotification("Failed to create game.", resp.message);
+            nuxtApp.$sendErrorNotification("Failed to create game.", resp.message!);
         } else {
             activeGameStore.game = resp.data;
         }
@@ -33,7 +33,7 @@ async function doJoinGame(gameId: string) {
     if (userStore.isAuthenticated) {
         const resp = await nuxtApp.$socketOps.joinGame(gameId);
         if (resp.status !== "ok") {
-            nuxtApp.$sendErrorNotification("Failed to join game.", resp.message);
+            nuxtApp.$sendErrorNotification("Failed to join game.", resp.message!);
         } else {
             activeGameStore.game = resp.data;
         }
@@ -47,7 +47,7 @@ async function doSpectateGame(gameId: string) {
     if (userStore.isAuthenticated) {
         const resp = await nuxtApp.$socketOps.spectateGame(gameId);
         if (resp.status !== "ok") {
-            nuxtApp.$sendErrorNotification("Failed to spectate game.", resp.message);
+            nuxtApp.$sendErrorNotification("Failed to spectate game.", resp.message!);
         } else {
             activeGameStore.game = resp.data;
         }

@@ -13,6 +13,9 @@ const game = computed(() => activeGameStore.game!);
             <GameActiveStatePlaying v-else-if="game.state === GameState.Playing" />
             <GameActiveStateJudging v-else-if="game.state === GameState.Judging" />
         </div>
-        <GameActiveChatbox />
+        <div class="grow-0 flex gap-x-2">
+            <GameActiveLeftMenu />
+            <GameActiveChatbox />
+        </div>
     </div>
 </template>

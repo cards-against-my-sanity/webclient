@@ -111,7 +111,6 @@ export default defineNuxtPlugin(() => {
         const { gameId, player } = resp.data!;
         if (activeGameStore.exists) {
             activeGameStore.addPlayer(player);
-            activeGameStore.addSystemMessageDirectly(`${player.nickname} has joined the game`);
         } else {
             gameBrowserStore.addPlayer(gameId, player);
         }
@@ -120,7 +119,6 @@ export default defineNuxtPlugin(() => {
     socket.on('playerLeft', (resp: SocketResponse<GameIdPayload & PlayerIdPayload>) => {
         const { gameId, playerId } = resp.data!;
         if (activeGameStore.exists) {
-            activeGameStore.addSystemMessageDirectly(`${activeGameStore.getPlayerById(playerId)!.nickname} has left the game`);
             activeGameStore.removePlayer(playerId);
         } else {
             gameBrowserStore.removePlayer(gameId, playerId);
@@ -133,7 +131,6 @@ export default defineNuxtPlugin(() => {
         const { gameId, spectator } = resp.data!;
         if (activeGameStore.exists) {
             activeGameStore.addSpectator(spectator);
-            activeGameStore.addSystemMessageDirectly(`${spectator.nickname} has started spectating the game`);
         } else {
             gameBrowserStore.addSpectator(gameId, spectator);
         }
@@ -142,7 +139,6 @@ export default defineNuxtPlugin(() => {
     socket.on('spectatorLeft', (resp: SocketResponse<GameIdPayload & SpectatorIdPayload>) => {
         const { gameId, spectatorId } = resp.data!;
         if (activeGameStore.exists) {
-            activeGameStore.addSystemMessageDirectly(`${activeGameStore.getSpectatorById(spectatorId)!.nickname} has stopped spectating the game`);
             activeGameStore.removeSpectator(spectatorId);
         } else {
             gameBrowserStore.removeSpectator(gameId, spectatorId);
@@ -171,27 +167,89 @@ export default defineNuxtPlugin(() => {
     socket.on('roundWinner', (resp: SocketResponse<GameIdPayload & PartialPlayerPayload & WhiteCardsPayload>) => null);
 
     socket.on('stateTransition', async (resp: SocketResponse<GameIdPayload & StateTransitionPayload>) => {
-        const { gameId, to, from } = resp.data!;
+        const { gameId, to } = resp.data!;
 
         if (activeGameStore.exists) {
-            const game = activeGameStore.game!;
+            activeGameStore.setState(to);
+        } else {
+            gameBrowserStore.setState(gameId, to);
+        }
 
-            if (to === GameState.Abandoned && gameId === game.id && userStore.user!.id !== game.host.id) {
+        switch (to) {
+            case GameState.Lobby:
+                handleLobby(gameId);
+                break;
+            case GameState.Dealing:
+                handleDealing(gameId);
+                break;
+            case GameState.Playing:
+                handlePlaying(gameId);
+                break;
+            case GameState.Judging:
+                handleJudging(gameId);
+                break;
+            case GameState.Win:
+                handleWin(gameId);
+                break;
+            case GameState.Reset:
+                handleReset(gameId);
+                break;
+            case GameState.Abandoned:
+                handleAbandoned(gameId);
+                break;
+        }
+    });
+    
+    function handleLobby(gameId: string) {
+
+    }
+
+    function handleDealing(gameId: string) {
+        // TODO: play dealing sound or something fun
+    }
+
+    function handlePlaying(gameId: string) {
+        if (activeGameStore.exists) {
+            if (!activeGameStore.iAmTheJudge) {
+                activeGameStore.iNeedToPlay = true;
+            } else {
+                activeGameStore.iNeedToPlay = false;
+            }
+        }
+    }
+
+    function handleJudging(gameId: string) {
+        if (activeGameStore.exists) {
+            if (activeGameStore.iAmTheJudge) {
+                activeGameStore.iNeedToPlay = true;
+            } else {
+                activeGameStore.iNeedToPlay = false;
+            }
+        }
+    }
+
+    function handleWin(gameId: string) {
+        // TODO: if this client is the winner, play celebration 
+        // sound or something fun
+    }
+
+    function handleReset(gameId: string) {
+        if (activeGameStore.exists) {
+            activeGameStore.resetGameData();
+        }
+    }
+
+    async function handleAbandoned(gameId: string) {
+        if (activeGameStore.exists) {
+            const game = activeGameStore.game!;
+            if (gameId === game.id && userStore.user!.id !== game.host.id) {
                 await socketOps.leaveGame();
+                activeGameStore.resetStore();
                 nuxtApp.$sendWarningNotification("Game closed", "The host left the game, so you were removed.");
                 return;
             }
-
-            if (to === GameState.Reset) {
-                activeGameStore.resetGameData();
-            }
-  
-            activeGameStore.setState(to);
-            return;
         }
-
-        gameBrowserStore.setState(gameId, to);
-    });
+    }
 
     socket.on('illegalStateTransition', (resp: SocketResponse<GameIdPayload & StateTransitionPayload>) => nuxtApp.$sendErrorNotification('Oh noes! The game is resetting.', 'The game experienced an illegal state change and is now resetting. Sorry.'));
 
