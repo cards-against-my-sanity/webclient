@@ -4,7 +4,7 @@ import { useActiveGameStore } from '~/stores/active-game.store';
 const nuxtApp = useNuxtApp();
 const activeGameStore = useActiveGameStore();
 const game = computed(() => activeGameStore.game!);
-const allDisabled = computed(() => !activeGameStore.iAmTheHost);
+const allDisabled = computed(() => !activeGameStore.isHost);
 
 const availableDecks = await useDecks().fetchDecks();
 const checkedDecks = computed(() => game.value.decks.map(d => d.id));
@@ -33,12 +33,11 @@ async function updateDeckStatus(deckId: string, event: InputEvent) {
     <div>
         <UiCaptionedTitle title="Decks" title-classes="font-bold text-sm"
             caption="Choose which decks to have in the game." />
-        <div class="grid grid-cols-7 gap-2">
-            <div v-for="deck in availableDecks" :key="'deck-' + deck.id" class="flex gap-x-2">
-                <FormCheckboxInput class="w-4 h-4" @input="updateDeckStatus(deck.id, $event as InputEvent)"
+        <div class="grid grid-cols-2 gap-x-2 gap-y-4 mt-4 text-xs">
+            <div v-for="deck in availableDecks" :key="'deck-' + deck.id" class="grid grid-cols-7 grid-rows-1 gap-x-2 items-center">
+                <UiCaptionedTitle class="col-span-5" title-classes="text-xs" :title="deck.name" />
+                <FormCheckboxInput class="col-span-2 ml-2 w-4 h-4" @input="updateDeckStatus(deck.id, $event as InputEvent)"
                     :checked="checkedDecks.includes(deck.id)" :disabled="allDisabled || waitingForDeckAck" />
-                <UiCaptionedTitle title-classes="text-xs" :title="deck.name" />
-
             </div>
         </div>
     </div>

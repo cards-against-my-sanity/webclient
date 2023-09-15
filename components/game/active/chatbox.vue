@@ -17,9 +17,8 @@ async function sendChat() {
 </script>
 
 <template>
-    <div class="flex flex-col w-full">
-        <div
-            class="grow-0 shrink-0 h-56 2xl:h-96 overflow-y-auto border-2 border-black dark:border-white p-4 rounded-md space-y-4">
+    <div class="h-full relative flex flex-col gap-y-4">
+        <div class="h-full overflow-y-auto space-y-2">
             <div v-for="(message, idx) in activeGameStore.messages" :key="'chat-message-' + idx"
                 class="relative flex flex-col">
                 <div class="absolute top-0 right-0 text-xs">[{{ dayjs(message.timestamp).format('hh:mm:ss A') }}]</div>
@@ -30,9 +29,8 @@ async function sendChat() {
                 </div>
                 <div class="indent-2"><span>{{ message.content }}</span></div>
             </div>
-
         </div>
-        <form class="grow-0 flex gap-x-4 justify-center items-center " @submit.prevent="sendChat">
+        <form class="flex gap-x-4 justify-center items-center " @submit.prevent="sendChat">
             <FormStringInput type="text" v-model="chatToSend" placeholder="Type a message..." />
             <UiButton class="text-xs h-10 w-28 flex justify-center items-center">
                 <input type="submit" value="Send Chat" />

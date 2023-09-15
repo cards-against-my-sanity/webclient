@@ -1,7 +1,8 @@
-<script setup>
+<script setup lang="ts">
 import { useActiveGameStore } from './stores/active-game.store';
 import { useModalStore } from './stores/modal.store';
 
+const auth = useAuth();
 const modal = useModalStore();
 const activeGameStore = useActiveGameStore();
 
@@ -11,23 +12,23 @@ useHead({
   }
 });
 
-await useAuth().fetchCurrentUser();
+await auth.fetchCurrentUser();
 </script>
 
 <template>
-  <div class="flex flex-col h-screen px-4 pb-4" v-if="activeGameStore.exists">
+  <div class="h-screen mx-4" v-if="activeGameStore.exists">
     <AppSmallHeader />
     <GameActive />
   </div>
-  <div class="container mx-auto pb-8" v-else>
+  <div class="max-w-[90vw] sm:container mx-auto pb-8" v-else>
     <AppNormalHeader />
     <GameBrowser />
   </div>
 
-  <ModalLogIn :open="modal.loginModalOpen" @close="modal.loginModalOpen = false" />
   <ModalSignUp :open="modal.signupModalOpen" @close="modal.signupModalOpen = false" />
+  <ModalLogIn :open="modal.loginModalOpen" @close="modal.loginModalOpen = false" />
 
   <client-only>
-    <notifications position="top center" :pause-on-hover="true" class="mt-5" :duration="5000" width="500px" :max="3" />
+    <notifications position="top center" :pause-on-hover="true" class="mt-5 w-[200px]" :duration="5000" :max="3" />
   </client-only>
 </template>

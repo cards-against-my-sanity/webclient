@@ -14,16 +14,24 @@ import IMessage from "~/shared-types/game/component/message/message.interface";
 export const useActiveGameStore = defineStore('active-game', () => {
     const userStore = useUserStore();
 
-    const game = ref<IGame | null>(null);
-    const exists = computed(() => game.value !== null);
+    // actual state being kept
+    const game = ref<IGame | null>(null);    
     const messages = ref<IMessage[]>([]);
     const hand = ref<IWhiteCard[]>([]);
     const blackCard = ref<IBlackCard | null>(null);
-    const iAmTheHost = computed(() => exists.value ? game.value!.host.id === userStore.user!.id : false);
-    const iAmASpectator = computed(() => exists.value ? game.value!.spectators.findIndex(s => s.id === userStore.user!.id) !== -1 : false);
-    const iAmTheJudge = computed(() => exists.value ? game.value!.players.find(p => p.id === userStore.user!.id)!.state : false);
     const cardsBeingJudged = ref<IWhiteCard[][]>([]);
-    const iNeedToPlay = ref<boolean>(false);
+    const timerRef = ref<NodeJS.Timeout|undefined>(undefined);
+    const timerValue = ref<number>(0);
+
+    // values computed from held state
+    const exists = computed(() => game.value !== null);
+    const player = computed(() => game.value!.players.find(p => p.id === userStore.user!.id));
+    const spectator = computed(() => game.value!.spectators.find(s => s.id === userStore.user!.id));
+    const isHost = computed(() => exists.value ? game.value!.host.id === userStore.user!.id : false);
+    const isSpectator = computed(() => exists.value ? !!spectator : false);
+    const isJudge = computed(() => exists.value ? player.value!.state === PlayerState.Judge : false);
+    const needToPlay = computed(() => exists.value ? player.value!.needToPlay : false);
+    const hasTimer = computed(() => timerRef.value !== undefined);
 
     function addPlayer(player: IPlayer) {
         if (!exists.value) {
@@ -42,18 +50,44 @@ export const useActiveGameStore = defineStore('active-game', () => {
             return;
         }
 
+        // Server removed me (perhaps timer elapsed)
+        if (player.value!.id === id) {
+            resetStore();
+            return;
+        }
+
         game.value!.players = game.value!.players.filter(p => p.id !== id);
     }
 
+    function updatePlayer(id: string, mutator: (player: IPlayer) => void) {
+        const player = game.value!.players.find(p => p.id === id);
+        if (player) {
+            mutator(player);
+        }
+    }
+
+    function updateEachPlayer(mutator: (player: IPlayer) => void) {
+        if (!exists.value) {
+            return;
+        }
+
+        game.value!.players.forEach(player => mutator(player));
+    }
+
     function resetPlayerStates() {
-        game.value!.players.forEach(p => p.state = PlayerState.Player);
+        updateEachPlayer(player => player.state = PlayerState.Player);
+    }
+
+    function resetPlayerScores() {
+        updateEachPlayer(player => player.score = 0);
+    }
+
+    function incrementPlayerScore(id: string) {
+        updatePlayer(id, player => player.score++);
     }
 
     function setPlayerState(id: string, state: PlayerState) {
-        const player = game.value!.players.find(p => p.id === id);
-        if (player) {
-            player.state = state;
-        }
+        updatePlayer(id, player => player.state = state);
     }
 
     function addSpectator(spectator: ISpectator) {
@@ -117,24 +151,38 @@ export const useActiveGameStore = defineStore('active-game', () => {
             type: 'system',
             content,
             timestamp: new Date().getTime()
-        });
+        })
     }
 
     function discardCards(cards: string[]) {
         hand.value = hand.value.filter(c => !cards.includes(c.id));
     }
 
+    function startTimer(seconds: number) {
+        if (timerRef.value !== null) {
+            clearTimer();
+        }
+
+        timerValue.value = seconds;
+        timerRef.value = setInterval(() => timerValue.value--, 1000);
+    }
+
+    function clearTimer() {
+        clearTimeout(timerRef.value);
+        timerRef.value = undefined;
+        timerValue.value = 0;
+    }
+
     function resetGameData() {
+        game.value!.state = GameState.Lobby;
         game.value!.roundNumber = 0;
-        game.value!.players.forEach(p => {
-            p.state = PlayerState.Player;
-            p.score = 0;
-        });
+
+        resetPlayerStates();
+        resetPlayerScores();
 
         hand.value.length = 0;
         blackCard.value = null;
         cardsBeingJudged.value.length = 0;
-        iNeedToPlay.value = false;
     }
 
     function resetStore() {
@@ -143,24 +191,31 @@ export const useActiveGameStore = defineStore('active-game', () => {
         hand.value.length = 0;
         blackCard.value = null;
         cardsBeingJudged.value.length = 0;
-        iNeedToPlay.value = false;
     }
 
     return {
         game,
-        exists,
         messages,
         hand,
         blackCard,
-        iAmTheHost,
-        iAmASpectator,
-        iAmTheJudge,
         cardsBeingJudged,
-        iNeedToPlay,
+        exists,
+        player,
+        spectator,
+        isHost,
+        isSpectator,
+        isJudge,
+        needToPlay,
+        timerValue,
+        hasTimer,
         addPlayer,
         getPlayerById,
         removePlayer,
+        updatePlayer,
+        updateEachPlayer,
         resetPlayerStates,
+        resetPlayerScores,
+        incrementPlayerScore,
         setPlayerState,
         addSpectator,
         getSpectatorById,
@@ -172,6 +227,8 @@ export const useActiveGameStore = defineStore('active-game', () => {
         addMessage,
         addSystemMessageDirectly,
         discardCards,
+        startTimer,
+        clearTimer,
         resetGameData,
         resetStore
     }

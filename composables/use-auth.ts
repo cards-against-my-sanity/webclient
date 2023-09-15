@@ -1,6 +1,6 @@
 import { FetchError } from "ofetch";
 import ICreateUserDto from "~/shared-types/user/create-user.dto.interface";
-import { IUser } from "~/shared-types/user/user.interface";
+import IUser from "~/shared-types/user/user.interface";
 import { useUserStore } from "~/stores/user.store";
 
 export const useAuth = () => {
@@ -23,20 +23,22 @@ export const useAuth = () => {
                 method: "POST",
                 body: dto
             });
-
-            await logIn(dto.nickname, dto.password);
+            
             return {};
         } catch (err) {
             return (err as FetchError).data;
         }
     }
 
-    async function logIn(nickname: string, password: string): Promise<boolean> {
+    async function logIn(nickname: string, password: string, remember: boolean): Promise<boolean> {
         nuxtApp.$socket.close();
 
         try {
             store.user = await fetch<IUser>("auth/login", {
                 method: "POST",
+                query: {
+                    remember
+                },
                 body: {
                     nickname,
                     password

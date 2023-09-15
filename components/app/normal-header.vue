@@ -58,9 +58,7 @@ async function doLogOut() {
                     <EllipsisHorizontalCircleIcon class="h-6 w-6 cursor-pointer" />
                 </template>
             </client-only>
-            <nuxt-link to="/">Home</nuxt-link>
-            <nuxt-link to="/about">About</nuxt-link>
-            <template v-if="!user.user">
+            <template v-if="!user.isAuthenticated">
                 <a href="#" @click="modal.loginModalOpen = true">Log In</a>
                 <a href="#" @click="modal.signupModalOpen = true">Sign Up</a>
             </template>

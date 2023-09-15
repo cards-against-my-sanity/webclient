@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { GameState } from '~/shared-types/game/game-state.enum';
 import { useActiveGameStore } from '~/stores/active-game.store';
 import { useGameBrowserStore } from '~/stores/game-browser.store';
 import { useModalStore } from '~/stores/modal.store';
@@ -59,23 +60,30 @@ async function doSpectateGame(gameId: string) {
 </script>
 
 <template>
-    <div class="flex flex-col w-full min-h-[75vh] rounded-md border-2 border-black dark:border-white px-4 py-4">
+    <div class="flex flex-col w-full h-[75vh] rounded-md border-2 border-black dark:border-white px-4 py-4 overflow-y-auto">
         <div class="flex justify-between items-center">
-            <h1 class="text-2xl">Game Browser</h1>
+            <h1 class="text-xl">Game Browser</h1>
             <UiButton @click="doCreateGame">Create a Game</UiButton>
         </div>
-        <div v-if="gameBrowserStore.games.length" class="mt-6 grid grid-cols-3 gap-4">
-            <div class="relative p-4 border-2 border-black dark:border-white" v-for="(game, idx) in gameBrowserStore.games"
-                :key="'game-browser-game-' + idx">
-                <p class="font-bold">{{ game.host.nickname }}'s game</p>
-                <p>{{ game.players.length }} / {{ game.settings.maxPlayers }} players</p>
-                <p>{{ game.spectators.length }} / {{ game.settings.maxSpectators }} spectators</p>
-                <p>Game ends at: {{ game.settings.maxScore }} points</p>
-                <p>Game state: {{ game.state }}</p>
-                <p>Decks in use: {{ game.decks.length === 0 ? 'None' : game.decks.map(d => d.name).join(", ") }}</p>
-                <div class="flex justify-evenly gap-x-2 mt-4">
-                    <UiButton @click="doJoinGame(game.id)">Join</UiButton>
-                    <UiButton @click="doSpectateGame(game.id)">Spectate</UiButton>
+        <div v-if="gameBrowserStore.games.length" class="mt-6 grid grid-cols-1 gap-4">
+            <div class="relative p-2 border-2 rounded-lg shadow-md border-black text-sm dark:border-white"
+                v-for="(game, idx) in gameBrowserStore.games" :key="'game-browser-game-' + idx">
+                <h1><span class="font-bold">{{ game.host.nickname }}</span>'s game</h1>
+                <div class="absolute text-right top-2 right-2">
+                    <p>{{ game.players.length }} / {{ game.settings.maxPlayers }} players</p>
+                    <p>{{ game.spectators.length }} / {{ game.settings.maxSpectators }} spectators</p>
+                </div>
+                <div class="mb-2">
+                    <p v-if="game.state === GameState.Lobby">Waiting to start... </p>
+                    <p v-else>In progress: {{ game.state }}</p>
+                </div>
+                <div class="mb-4">
+                    <p>Game ends at: {{ game.settings.maxScore }} points</p>
+                    <p>Decks in use: {{ game.decks.length === 0 ? 'None yet' : game.decks.map(d => d.name).join(", ") }}</p>
+                </div>
+                <div class="flex justify-evenly gap-x-2">
+                    <UiButton class='w-full' v-if="game.state === GameState.Lobby || game.settings.allowPlayersToJoinMidGame" @click="doJoinGame(game.id)">Join</UiButton>
+                    <UiButton class='w-full' @click="doSpectateGame(game.id)">Spectate</UiButton>
                 </div>
             </div>
         </div>

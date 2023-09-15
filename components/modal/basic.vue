@@ -14,7 +14,7 @@ function doClose() {
 <template>
     <Teleport to="body">
         <div v-if="open" class="fixed z-50 top-0 bottom-0 left-0 right-0 flex justify-center items-center bg-black/95">
-            <div @keydown.esc="doClose" class="relative bg-white dark:bg-zinc-900 dark:text-white rounded-md py-8 w-1/3">
+            <div @keydown.esc="doClose" class="relative bg-white dark:bg-zinc-900 dark:text-white rounded-md py-8 w-10/12">
                 <div class="absolute pr-3 mt-2 right-0 top-0">
                     <XMarkIcon class="h-6 w-6 cursor-pointer" @click="doClose" />
                 </div>

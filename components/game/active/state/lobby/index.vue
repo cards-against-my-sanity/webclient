@@ -11,15 +11,19 @@ function showDecksTab() {
 </script>
 
 <template>
-    <div class="flex justify-between items-center">
-        <h2 class="text-2xl">Game Settings</h2>
-        <div class="flex justify-start gap-x-2">
-            <UiButton @click="showSettingsTab" :disabled="shownTab === 'settings'">Settings</UiButton>
-            <UiButton @click="showDecksTab" :disabled="shownTab === 'decks'">Decks</UiButton>
+    <div class="h-full flex flex-col">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl">Game Settings</h2>
+            <div class="flex justify-start gap-x-2">
+                <UiButton @click="showSettingsTab" :disabled="shownTab === 'settings'">Settings</UiButton>
+                <UiButton @click="showDecksTab" :disabled="shownTab === 'decks'">Decks</UiButton>
+            </div>
+        </div>
+        <div class="h-full overflow-y-auto sm:h-auto">
+            <GameActiveStateLobbySettings v-if="shownTab === 'settings'" />
+            <KeepAlive v-else-if="shownTab === 'decks'">
+                <GameActiveStateLobbyDecks />
+            </KeepAlive>
         </div>
     </div>
-    <GameActiveStateLobbySettings v-if="shownTab === 'settings'" />
-    <KeepAlive v-else-if="shownTab === 'decks'">
-        <GameActiveStateLobbyDecks />
-    </KeepAlive>
 </template>

@@ -23,7 +23,7 @@ async function doSignUp() {
         modal.flashMessage = "Password must have at least 8 characters";
     }
 
-    const resp = await auth.signUp(nickname.value, password.value, email.value);
+    const resp = await auth.signUp({ nickname: nickname.value, password: password.value, email: email.value });
     if (Object.keys(resp).length === 0) {
         emit('close');
     } else {
@@ -55,11 +55,11 @@ function transferToLogIn() {
                 </div>
                 <div>
                     <UiCaptionedTitle title="Email (optional)"
-                        caption="This just lets me send you password reset emails if you forget the thing. If you don't provide it, you can't reset your password. But that doesn't bother me. So, provide it, or don't. I don't care." />
+                        caption="This just lets me send you password reset emails if you forget the thing. If you don't provide it, you can't reset your password." />
                     <FormStringInput type="email" placeholder="yourmom@gmail.com" v-model="email" />
                 </div>
 
-                <p>Already have an account? You can <a href="#" @click.prevent="transferToLogIn">log in here</a>.</p>
+                <p>Already have an account? You can <UiLink @click="transferToLogIn">log in here</UiLink>.</p>
 
                 <UiButton><input type="submit" value="Finish"></UiButton>
             </form>

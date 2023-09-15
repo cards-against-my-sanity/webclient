@@ -21,7 +21,7 @@ function handleInput(event: InputEvent) {
     <div class="relative">
         <input type="number" :value="props.modelValue" @input="handleInput($event as InputEvent)" :disabled="disabled"
             :min="props.min" :max="props.max" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring 
-                            focus:ring-indigo-200 focus:ring-opacity-50 text-black dark:text-gray"
+                            focus:ring-indigo-200 focus:ring-opacity-50 text-black dark:text-gray text-sm"
             :placeholder="props.placeholder || undefined" />
         <slot></slot>
     </div>

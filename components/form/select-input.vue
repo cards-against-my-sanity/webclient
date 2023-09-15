@@ -19,7 +19,7 @@ function handleInput(event: InputEvent) {
 <template>
     <select :value="props.modelValue" @change="handleInput($event as InputEvent)" :disabled="disabled" 
         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring 
-            focus:ring-indigo-200 focus:ring-opacity-50 text-black dark:text-gray">
+            focus:ring-indigo-200 focus:ring-opacity-50 text-black dark:text-gray text-sm">
         <option v-for="(entry, idx) in Object.entries(props.options)" :key="'option-' + idx" :value="entry[0]">{{ entry[1] }}</option>
     </select>
 </template>

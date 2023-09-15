@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { IUser } from "~/shared-types/user/user.interface";
+import IUser from "~/shared-types/user/user.interface";
 
 export const useUserStore = defineStore('user', () => {
     const user = ref<IUser | null>(null);

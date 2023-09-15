@@ -10,6 +10,7 @@ const auth = useAuth();
 
 const nickname = ref<string>("");
 const password = ref<string>("");
+const remember = ref<boolean>(false);
 
 async function doLogIn() {
     modal.flashMessage = null;
@@ -22,7 +23,7 @@ async function doLogIn() {
         modal.flashMessage = "Password must have at least 8 characters";
     }
 
-    const resp = await auth.logIn(nickname.value, password.value);
+    const resp = await auth.logIn(nickname.value, password.value, remember.value);
     if (resp) {
         emit('close');
     } else {
@@ -40,7 +41,7 @@ function transferToSignUp() {
 <template>
     <ModalBasic :open="open" @close="$emit('close')">
         <h1 class="text-xl font-bold text-center">Log In</h1>
-        <div v-if="modal.flashMessage" class="mt-2 text-center text-red-400">{{ modal.flashMessage }}</div>
+        <div v-if="modal.flashMessage" class="mt-2 text-center text-xs text-red-400">{{ modal.flashMessage }}</div>
         <div class="mt-5">
             <form @submit.prevent="doLogIn" class="grid grid-cols-1 gap-6 px-4">
                 <div>
@@ -51,10 +52,15 @@ function transferToSignUp() {
                     <UiCaptionedTitle title="Password" />
                     <FormStringInput type="password" placeholder="mySup3rP@ssw0rd" v-model="password" />
                 </div>
+                <div class="flex justify-center items-center gap-x-12">
+                    <UiCaptionedTitle title="Remember Me" caption="If checked, you'll be remembered for up to a week." />
+                    <FormCheckboxInput v-model="remember" />
+                </div>
 
-                <p>No account? You can <a href="#" @click.prevent="transferToSignUp">sign up here</a>.</p>
+                
+                <p>No account? You can <UiLink @click="transferToSignUp">sign up here</UiLink>.</p>
 
-                <UiButton><input type="submit" value="Go"></UiButton>
+                <UiButton><input type="submit" value="Go" /></UiButton>
             </form>
         </div>
     </ModalBasic>

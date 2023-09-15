@@ -40,11 +40,12 @@ const playerStatusLines = computed(() => {
 </script>   
 
 <template>
-    <div class="flex flex-col w-96 space-y-4 border-2 border-black dark:border-white p-4 rounded-md">
-        <div v-for="(player, idx) in game.players" :key="'player-' + idx" class="relative h-16 border-black border-b-2 mt-2 mb-2">
-            <p class="font-semibold">{{ player.nickname }}</p>
-            <p class="absolute top-1 right-2">{{ playerStatusLines[player.id] }}</p>
-            <p class="absolute bottom-1 right-2">Score: {{ player.score }}</p>
+    <div class="h-full w-full space-y-4 text-sm">
+        <div v-for="(player, idx) in game.players" :key="'player-' + idx" class="relative h-16 border-b-2 mb-2">
+            <p class="absolute top-1 left-1 font-semibold">{{ player.nickname }}</p>
+            <p class="absolute top-1 right-1">{{ playerStatusLines[player.id] }}</p>
+            <p class="absolute bottom-1 right-1">Score: {{ player.score }}</p>
+            <p class="absolute bottom-1 left-1">{{ player.needToPlay ? "Playing" : "Waiting" }}</p>
         </div>
     </div>
 </template>

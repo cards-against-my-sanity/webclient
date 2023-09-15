@@ -5,7 +5,6 @@ import { MoonIcon, SunIcon, EllipsisHorizontalCircleIcon, ArrowLeftOnRectangleIc
 import { GameState } from '~/shared-types/game/game-state.enum';
 
 const nuxtApp = useNuxtApp();
-const user = useUserStore();
 const colorMode = useColorMode();
 const activeGameStore = useActiveGameStore();
 const game = computed(() => activeGameStore.game!);
@@ -61,7 +60,7 @@ async function stopGame() {
 </script>
 
 <template>
-    <div class="grow-0 flex justify-between items-center">
+    <div class="flex justify-between items-center">
         <div class="flex justify-evenly items-center gap-x-4">
             <img src="/logo.svg" class="w-20 h-20" alt="Cards Against My Sanity Logo" />
             <client-only>
@@ -73,20 +72,20 @@ async function stopGame() {
         </div>
         <nav class="flex justify-evenly items-center list-none gap-x-4 text-lg">
             <UiButton class="px-2 py-1" @click="leaveGame">
-                <ArrowLeftOnRectangleIcon class="h-4 w-4 inline mr-2"></ArrowLeftOnRectangleIcon>
-                <span class="text-sm">Leave Game</span>
+                <ArrowLeftOnRectangleIcon class="h-4 w-4 inline sm:mr-2"></ArrowLeftOnRectangleIcon>
+                <span class="hidden sm:inline">Leave Game</span>
             </UiButton>
-            <div v-if="activeGameStore.iAmTheHost">
+            <div v-if="activeGameStore.isHost">
                 <div v-if="game.state === GameState.Lobby">
                     <UiButton class="px-2 py-1" @click="startGame">
-                        <PlayIcon class="h-4 w-4 inline mr-2"></PlayIcon>
-                        <span class="text-sm">Start Game</span>
+                        <PlayIcon class="h-4 w-4 inline sm:mr-2"></PlayIcon>
+                        <span class="hidden sm:inline">Start Game</span>
                     </UiButton>
                 </div>
                 <div v-else>
                     <UiButton class="px-2 py-1" @click="stopGame">
-                        <StopIcon class="h-4 w-4 inline mr-2"></StopIcon>
-                        <span class="text-sm">Stop Game Game</span>
+                        <StopIcon class="h-4 w-4 inline sm:mr-2"></StopIcon>
+                        <span class="hidden sm:inline">Stop Game</span>
                     </UiButton>
                 </div>
             </div>

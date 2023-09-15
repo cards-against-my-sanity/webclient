@@ -26,6 +26,7 @@ import WhiteCardsMatrixPayload from '~/shared-types/card/white/white-cards-matri
 import ConnectionStatusPayload from '~/shared-types/misc/connection-status.payload';
 import UnauthorizedPayload from '~/shared-types/misc/unauthorized.payload';
 import IMessage from '~/shared-types/game/component/message/message.interface';
+import SecondsPayload from '~/shared-types/game/component/seconds.payload';
 
 export default defineNuxtPlugin(() => {
     const nuxtApp = useNuxtApp();
@@ -80,7 +81,9 @@ export default defineNuxtPlugin(() => {
         }
     };
 
-    socket.on('gameAdded', (resp: SocketResponse<IGame>) => gameBrowserStore.add(resp.data!));
+    socket.on('gameAdded', (resp: SocketResponse<IGame>) => {
+        gameBrowserStore.add(resp.data!)
+    });
 
     socket.on('decksUpdated', (resp: SocketResponse<GameIdPayload & DecksPayload>) => {
         const { gameId, decks } = resp.data!;
@@ -100,12 +103,17 @@ export default defineNuxtPlugin(() => {
         }
     });
 
-    socket.on('chat', (resp: SocketResponse<IMessage>) => activeGameStore.addMessage(resp.data!));
+    socket.on('chat', (resp: SocketResponse<IMessage>) => {
+        activeGameStore.addMessage(resp.data!);
+    });
 
-    socket.on('systemMessage', (resp: SocketResponse<IMessage>) => activeGameStore.addMessage(resp.data!));
+    socket.on('systemMessage', (resp: SocketResponse<IMessage>) => {
+        activeGameStore.addMessage(resp.data!);
+    });
 
-    // TODO: update player status to show no longer waiting on them to play
-    socket.on('cardsPlayed', (resp: SocketResponse<PartialPlayerPayload>) => null);
+    socket.on('cardsPlayed', (resp: SocketResponse<PartialPlayerPayload>) => {
+        activeGameStore.updatePlayer(resp.data!.player.id!, player => player.needToPlay = false);
+    });
 
     socket.on('playerJoined', (resp: SocketResponse<GameIdPayload & PlayerPayload>) => {
         const { gameId, player } = resp.data!;
@@ -125,7 +133,9 @@ export default defineNuxtPlugin(() => {
         }
     });
 
-    socket.on('gameRemoved', (resp: SocketResponse<GameIdPayload>) => gameBrowserStore.remove(resp.data!.gameId));
+    socket.on('gameRemoved', (resp: SocketResponse<GameIdPayload>) => {
+        gameBrowserStore.remove(resp.data!.gameId);
+    });
 
     socket.on('spectatorJoined', (resp: SocketResponse<GameIdPayload & SpectatorPayload>) => {
         const { gameId, spectator } = resp.data!;
@@ -151,20 +161,34 @@ export default defineNuxtPlugin(() => {
             activeGameStore.incrementRound();
             activeGameStore.resetPlayerStates();
             activeGameStore.setPlayerState(judgeId, PlayerState.Judge);
-            activeGameStore.addSystemMessageDirectly(`The next round has begun. This round's judge is ${activeGameStore.getPlayerById(judgeId)!.nickname}.`);
         } else {
             gameBrowserStore.incrementRound(gameId);
         }
     });
 
-    socket.on('dealCard', (resp: SocketResponse<WhiteCardPayload & GameIdPayload & PartialPlayerPayload>) => activeGameStore.hand.push(resp.data!.card));
+    socket.on('dealCard', (resp: SocketResponse<WhiteCardPayload & GameIdPayload & PartialPlayerPayload>) => {
+        activeGameStore.hand.push(resp.data!.card);
+    });
 
-    socket.on('dealBlackCard', (resp: SocketResponse<BlackCardPayload & GameIdPayload>) => activeGameStore.blackCard = resp.data!.card);
+    socket.on('dealBlackCard', (resp: SocketResponse<BlackCardPayload & GameIdPayload>) => {
+        activeGameStore.blackCard = resp.data!.card;
+    });
 
-    socket.on('cardsToJudge', (resp: SocketResponse<GameIdPayload & WhiteCardsMatrixPayload>) => activeGameStore.cardsBeingJudged = resp.data!.matrix);
+    socket.on('cardsToJudge', (resp: SocketResponse<GameIdPayload & WhiteCardsMatrixPayload>) => {
+        activeGameStore.cardsBeingJudged = resp.data!.matrix;
+    });
 
-    // TODO: ??? cheer or something
-    socket.on('roundWinner', (resp: SocketResponse<GameIdPayload & PartialPlayerPayload & WhiteCardsPayload>) => null);
+    socket.on('roundWinner', (resp: SocketResponse<GameIdPayload & PartialPlayerPayload & WhiteCardsPayload>) => {
+        activeGameStore.incrementPlayerScore(resp.data!.player.id!);
+    });
+    
+    socket.on('startTimer', (resp: SocketResponse<SecondsPayload>) => {
+        activeGameStore.startTimer(resp.data!.seconds);
+    });
+
+    socket.on('clearTimer', (resp: SocketResponse<null>) => {
+        activeGameStore.clearTimer();
+    });
 
     socket.on('stateTransition', async (resp: SocketResponse<GameIdPayload & StateTransitionPayload>) => {
         const { gameId, to } = resp.data!;
@@ -173,6 +197,53 @@ export default defineNuxtPlugin(() => {
             activeGameStore.setState(to);
         } else {
             gameBrowserStore.setState(gameId, to);
+        }
+
+        function handleLobby(gameId: string) {
+
+        }
+    
+        function handleDealing(gameId: string) {
+            // TODO: play dealing sound or something fun
+        }
+    
+        function handlePlaying(gameId: string) {
+            if (activeGameStore.exists) {
+                activeGameStore.updateEachPlayer(player => {
+                    player.needToPlay = player.state === PlayerState.Player;
+                });
+            }
+        }
+    
+        function handleJudging(gameId: string) {
+            if (activeGameStore.exists) {
+                activeGameStore.updateEachPlayer(player => {
+                    player.needToPlay = player.state === PlayerState.Judge;
+                });
+            }
+        }
+    
+        function handleWin(gameId: string) {
+            // TODO: if this client is the winner, play celebration 
+            // sound or something fun
+        }
+    
+        function handleReset(gameId: string) {
+            if (activeGameStore.exists) {
+                activeGameStore.resetGameData();
+            }
+        }
+
+        async function handleAbandoned(gameId: string) {
+            if (activeGameStore.exists) {
+                const game = activeGameStore.game!;
+                if (gameId === game.id && userStore.user!.id !== game.host.id) {
+                    await socketOps.leaveGame();
+                    activeGameStore.resetStore();
+                    nuxtApp.$sendWarningNotification("Game closed", "The host left the game, so you were removed.");
+                    return;
+                }
+            }
         }
 
         switch (to) {
@@ -200,58 +271,9 @@ export default defineNuxtPlugin(() => {
         }
     });
     
-    function handleLobby(gameId: string) {
-
-    }
-
-    function handleDealing(gameId: string) {
-        // TODO: play dealing sound or something fun
-    }
-
-    function handlePlaying(gameId: string) {
-        if (activeGameStore.exists) {
-            if (!activeGameStore.iAmTheJudge) {
-                activeGameStore.iNeedToPlay = true;
-            } else {
-                activeGameStore.iNeedToPlay = false;
-            }
-        }
-    }
-
-    function handleJudging(gameId: string) {
-        if (activeGameStore.exists) {
-            if (activeGameStore.iAmTheJudge) {
-                activeGameStore.iNeedToPlay = true;
-            } else {
-                activeGameStore.iNeedToPlay = false;
-            }
-        }
-    }
-
-    function handleWin(gameId: string) {
-        // TODO: if this client is the winner, play celebration 
-        // sound or something fun
-    }
-
-    function handleReset(gameId: string) {
-        if (activeGameStore.exists) {
-            activeGameStore.resetGameData();
-        }
-    }
-
-    async function handleAbandoned(gameId: string) {
-        if (activeGameStore.exists) {
-            const game = activeGameStore.game!;
-            if (gameId === game.id && userStore.user!.id !== game.host.id) {
-                await socketOps.leaveGame();
-                activeGameStore.resetStore();
-                nuxtApp.$sendWarningNotification("Game closed", "The host left the game, so you were removed.");
-                return;
-            }
-        }
-    }
-
-    socket.on('illegalStateTransition', (resp: SocketResponse<GameIdPayload & StateTransitionPayload>) => nuxtApp.$sendErrorNotification('Oh noes! The game is resetting.', 'The game experienced an illegal state change and is now resetting. Sorry.'));
+    socket.on('illegalStateTransition', (resp: SocketResponse<GameIdPayload & StateTransitionPayload>) => {
+        nuxtApp.$sendErrorNotification('Oh noes! The game is resetting.', 'The game experienced an illegal state change and is now resetting. Sorry.');
+    });
 
     socket.on('connectionStatus', (resp: SocketResponse<ConnectionStatusPayload>) => {
         const { status, type, message } = resp.data!;
@@ -263,7 +285,9 @@ export default defineNuxtPlugin(() => {
         }
     });
 
-    socket.on('unauthorized', (resp: SocketResponse<UnauthorizedPayload>) => nuxtApp.$sendErrorNotification("You can't do that", resp.data!.message || "Unknown"));
+    socket.on('unauthorized', (resp: SocketResponse<UnauthorizedPayload>) => {
+        nuxtApp.$sendErrorNotification("You can't do that", resp.data!.message || "Unknown")
+    });
 
     return {
         provide: {
