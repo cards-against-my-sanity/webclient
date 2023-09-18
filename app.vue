@@ -15,14 +15,23 @@ useHead({
 await auth.fetchCurrentUser();
 </script>
 
+<style scoped>
+#game-container {
+  /*
+    Header is 5rem tall (h-20). 
+    Leave 1rem at the bottom.
+  */
+  height: calc(100% - 6rem);
+}
+</style>
+
 <template>
-  <div class="h-screen mx-4" v-if="activeGameStore.exists">
-    <AppSmallHeader />
-    <GameActive />
-  </div>
-  <div class="max-w-[90vw] sm:container mx-auto pb-8" v-else>
-    <AppNormalHeader />
-    <GameBrowser />
+  <div class="h-screen mx-4">
+    <AppHeader class="h-20" />
+    <div id="game-container" class="w-full overflow-y-auto">
+      <GameActive v-if="activeGameStore.exists" />
+      <GameBrowser v-else />
+    </div>
   </div>
 
   <ModalSignUp :open="modal.signupModalOpen" @close="modal.signupModalOpen = false" />

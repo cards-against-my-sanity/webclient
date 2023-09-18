@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import GameConstants from '~/shared-types/game/game.constants';
 import { useActiveGameStore } from '~/stores/active-game.store';
 const nuxtApp = useNuxtApp();
 const activeGameStore = useActiveGameStore();
@@ -12,49 +13,66 @@ function handleAllowPlayersToJoinMidGame(event: InputEvent) {
     updateSettings();
 }
 
-const waitingForSettingsAck = ref<boolean>(false)
+const waitingForSettingsAck = ref<boolean>(false);
+const settingsDebounceTimeout = ref<NodeJS.Timeout | null>(null);
+
 async function updateSettings() {
-    if (game.value.settings.maxPlayers < 3) {
-        game.value.settings.maxPlayers = 3;
+    if (settingsDebounceTimeout.value !== null) {
+        clearTimeout(settingsDebounceTimeout.value);
     }
 
-    if (game.value.settings.maxSpectators < 0) {
-        game.value.settings.maxSpectators = 0;
-    }
+    settingsDebounceTimeout.value = setTimeout(async () => {
+        if (game.value.settings.maxPlayers < 3) {
+            game.value.settings.maxPlayers = 3;
+        }
 
-    if (game.value.settings.maxScore < 1) {
-        game.value.settings.maxScore = 1;
-    }
+        if (game.value.settings.maxSpectators < 0) {
+            game.value.settings.maxSpectators = 0;
+        }
 
-    if (game.value.settings.roundIntermissionTimer < 0) {
-        game.value.settings.roundIntermissionTimer = 0;
-    }
+        if (game.value.settings.maxScore < 1) {
+            game.value.settings.maxScore = 1;
+        }
 
-    if (game.value.settings.gameWinIntermissionTimer < 0) {
-        game.value.settings.gameWinIntermissionTimer = 0;
-    }
+        if (game.value.settings.roundIntermissionTimer < 0) {
+            game.value.settings.roundIntermissionTimer = 0;
+        } else if (game.value.settings.roundIntermissionTimer > GameConstants.MAX_TIMER_VALUE) {
+            game.value.settings.roundIntermissionTimer = GameConstants.MAX_TIMER_VALUE;
+        }
 
-    if (game.value.settings.playingTimer < 15) {
-        game.value.settings.playingTimer = 15;
-    }
+        if (game.value.settings.gameWinIntermissionTimer < 0) {
+            game.value.settings.gameWinIntermissionTimer = 0;
+        } else if (game.value.settings.gameWinIntermissionTimer > GameConstants.MAX_TIMER_VALUE) {
+            game.value.settings.gameWinIntermissionTimer = GameConstants.MAX_TIMER_VALUE;
+        }
 
-    if (game.value.settings.judgingTimer < 15) {
-        game.value.settings.judgingTimer = 15;
-    }
-    
-    waitingForSettingsAck.value = true;
+        if (game.value.settings.playingTimer < 15) {
+            game.value.settings.playingTimer = 15;
+        } else if (game.value.settings.playingTimer > GameConstants.MAX_TIMER_VALUE) {
+            game.value.settings.playingTimer = GameConstants.MAX_TIMER_VALUE;
+        }
 
-    const resp = await nuxtApp.$socketOps.changeGameSettings(game.value.settings);
-    if (resp.status !== "ok") {
-        activeGameStore.addSystemMessageDirectly(`Game settings not updated. ${resp.message}`);
-    }
+        if (game.value.settings.judgingTimer < 15) {
+            game.value.settings.judgingTimer = 15;
+        } else if (game.value.settings.judgingTimer > GameConstants.MAX_TIMER_VALUE) {
+            game.value.settings.judgingTimer = GameConstants.MAX_TIMER_VALUE;
+        }
 
-    waitingForSettingsAck.value = false;
+        waitingForSettingsAck.value = true;
+
+        const resp = await nuxtApp.$socketOps.changeGameSettings(game.value.settings);
+        if (resp.status !== "ok") {
+            activeGameStore.addSystemMessageDirectly(`Game settings not updated. ${resp.message}`);
+        }
+
+        waitingForSettingsAck.value = false;
+        settingsDebounceTimeout.value = null;
+    }, 300);
 }
 </script>
 
 <template>
-    <div class="grid grid-cols-2 auto-rows-min gap-x-4 gap-y-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-4">
         <div>
             <UiCaptionedTitle title="Max Players" title-classes="font-bold text-sm" caption="Don't add too many." />
             <FormNumberInput v-model="game.settings.maxPlayers" @input="updateSettings"
@@ -98,7 +116,8 @@ async function updateSettings() {
             <UiCaptionedTitle title="Mid-Game Joining" title-classes="font-bold text-sm"
                 caption="Can players join mid-game?" />
             <FormSelectInput :model-value="game.settings.allowPlayersToJoinMidGame ? 'true' : 'false'"
-                :disabled="allDisabled || waitingForSettingsAck" @input="handleAllowPlayersToJoinMidGame($event)" :options="{ 'false': 'No', 'true': 'Yes' }" />
+                :disabled="allDisabled || waitingForSettingsAck" @input="handleAllowPlayersToJoinMidGame($event)"
+                :options="{ 'false': 'No', 'true': 'Yes' }" />
         </div>
     </div>
 </template>

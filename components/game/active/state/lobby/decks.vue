@@ -33,9 +33,9 @@ async function updateDeckStatus(deckId: string, event: InputEvent) {
     <div>
         <UiCaptionedTitle title="Decks" title-classes="font-bold text-sm"
             caption="Choose which decks to have in the game." />
-        <div class="grid grid-cols-2 gap-x-2 gap-y-4 mt-4 text-xs">
-            <div v-for="deck in availableDecks" :key="'deck-' + deck.id" class="grid grid-cols-7 grid-rows-1 gap-x-2 items-center">
-                <UiCaptionedTitle class="col-span-5" title-classes="text-xs" :title="deck.name" />
+        <div class="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-2 gap-y-4 mt-4 text-xs">
+            <div v-for="deck in availableDecks" :key="'deck-' + deck.id" class="grid grid-cols-8 grid-rows-1 gap-x-2 items-center">
+                <UiCaptionedTitle class="col-span-6" title-classes="text-xs" :title="deck.name" />
                 <FormCheckboxInput class="col-span-2 ml-2 w-4 h-4" @input="updateDeckStatus(deck.id, $event as InputEvent)"
                     :checked="checkedDecks.includes(deck.id)" :disabled="allDisabled || waitingForDeckAck" />
             </div>

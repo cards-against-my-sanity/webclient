@@ -60,7 +60,7 @@ async function doSpectateGame(gameId: string) {
 </script>
 
 <template>
-    <div class="flex flex-col w-full h-[75vh] rounded-md border-2 border-black dark:border-white px-4 py-4 overflow-y-auto">
+    <div class="h-full p-4 flex flex-col rounded-md border-2 border-black dark:border-white">
         <div class="flex justify-between items-center">
             <h1 class="text-xl">Game Browser</h1>
             <UiButton @click="doCreateGame">Create a Game</UiButton>
@@ -87,8 +87,9 @@ async function doSpectateGame(gameId: string) {
                 </div>
             </div>
         </div>
-        <div v-else class="flex-grow flex justify-center items-center">
-            <p>There are no games to join. Why not create one?</p>
+        <div v-else class="grow flex flex-col justify-center items-center">
+            <p>There are no games to join.</p>
+            <UiLink @click="doCreateGame">Why not create one?</UiLink>
         </div>
     </div>
 </template>

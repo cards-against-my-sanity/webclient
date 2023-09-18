@@ -23,6 +23,6 @@ const extraClasses = computed(() => {
 
 <template>
     <li class="mr-2">
-        <a href="#" @click.prevent="$emit('click')" :aria-current="props.active" class="inline-block p-4 rounded-t-r-md" :class="extraClasses">{{ props.text }}</a>
+        <a href="#" @click.prevent="$emit('click')" :aria-current="props.active" class="inline-block p-4 rounded-t-md" :class="extraClasses">{{ props.text }}</a>
     </li>
 </template>

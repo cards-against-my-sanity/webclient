@@ -4,7 +4,7 @@ const activeGameStore = useActiveGameStore();
 </script>
 
 <template>
-    <div class="grid grid-cols-10 gap-x-4">
+    <div class="h-full flex flex-col">
         <GameActiveStatePlayingJudgeView v-if="activeGameStore.isJudge" />
         <GameActiveStatePlayingPlayerView v-else />
     </div>

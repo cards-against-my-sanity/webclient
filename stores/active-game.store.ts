@@ -20,18 +20,22 @@ export const useActiveGameStore = defineStore('active-game', () => {
     const hand = ref<IWhiteCard[]>([]);
     const blackCard = ref<IBlackCard | null>(null);
     const cardsBeingJudged = ref<IWhiteCard[][]>([]);
+    const winningCards = ref<IWhiteCard[]>([]);
     const timerRef = ref<NodeJS.Timeout|undefined>(undefined);
+    const initialTimerValue = ref<number>(0);
     const timerValue = ref<number>(0);
 
     // values computed from held state
     const exists = computed(() => game.value !== null);
     const player = computed(() => game.value!.players.find(p => p.id === userStore.user!.id));
+    const currentJudge = computed(() => game.value!.players.find(p => p.state === PlayerState.Judge));
     const spectator = computed(() => game.value!.spectators.find(s => s.id === userStore.user!.id));
     const isHost = computed(() => exists.value ? game.value!.host.id === userStore.user!.id : false);
     const isSpectator = computed(() => exists.value ? !!spectator : false);
     const isJudge = computed(() => exists.value ? player.value!.state === PlayerState.Judge : false);
     const needToPlay = computed(() => exists.value ? player.value!.needToPlay : false);
     const hasTimer = computed(() => timerRef.value !== undefined);
+    const timerPercentLeft = computed(() => hasTimer.value ? Math.ceil((timerValue.value / initialTimerValue.value) * 100) : 0);
 
     function addPlayer(player: IPlayer) {
         if (!exists.value) {
@@ -143,7 +147,7 @@ export const useActiveGameStore = defineStore('active-game', () => {
     }
 
     function addMessage(payload: IMessage) {
-        messages.value.push(payload);
+        messages.value.unshift(payload);
     }
 
     function addSystemMessageDirectly(content: string) {
@@ -163,6 +167,7 @@ export const useActiveGameStore = defineStore('active-game', () => {
             clearTimer();
         }
 
+        initialTimerValue.value = seconds;
         timerValue.value = seconds;
         timerRef.value = setInterval(() => timerValue.value--, 1000);
     }
@@ -170,6 +175,7 @@ export const useActiveGameStore = defineStore('active-game', () => {
     function clearTimer() {
         clearTimeout(timerRef.value);
         timerRef.value = undefined;
+        initialTimerValue.value = 0;
         timerValue.value = 0;
     }
 
@@ -199,15 +205,19 @@ export const useActiveGameStore = defineStore('active-game', () => {
         hand,
         blackCard,
         cardsBeingJudged,
+        winningCards,
         exists,
         player,
+        currentJudge,
         spectator,
         isHost,
         isSpectator,
         isJudge,
         needToPlay,
         timerValue,
+        initialTimerValue,
         hasTimer,
+        timerPercentLeft,
         addPlayer,
         getPlayerById,
         removePlayer,

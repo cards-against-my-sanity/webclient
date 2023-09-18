@@ -16,7 +16,7 @@ const extraClasses = computed(() => ({
 </script>
 
 <template>
-    <div class="bg-zinc-100 text-black border-2 shadow-md shadow-black w-40 h-40 rounded-md p-4 hover:opacity-40 hover:scale-105 hover:cursor-pointer active:cursor-grab" :class="extraClasses">
+    <div class="grow-0 shrink-0 basis-32 w-32 h-48 bg-zinc-100 text-black border-2 shadow-sm shadow-black text-sm rounded-md p-4 hover:opacity-40 hover:cursor-pointer active:cursor-grab" :class="extraClasses">
         <div v-html="props.content"></div>
     </div>
 </template>

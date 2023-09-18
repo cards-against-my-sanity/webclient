@@ -1,16 +1,11 @@
 <script setup lang="ts">
 import { useActiveGameStore } from '~/stores/active-game.store';
 
-const nuxtApp = useNuxtApp();
 const activeGameStore = useActiveGameStore();
-const cardsBeingJudged = computed(() => activeGameStore.cardsBeingJudged);
-const blackCard = computed(() => activeGameStore.blackCard!);
-
-
 </script>
 
 <template>
-    <div class="grid grid-cols-10 gap-x-4">
+    <div class="h-full flex flex-col">
         <GameActiveStateJudgingJudgeView v-if="activeGameStore.isJudge" />
         <GameActiveStateJudgingPlayerView v-else />
     </div>

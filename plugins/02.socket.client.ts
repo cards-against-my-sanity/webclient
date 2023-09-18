@@ -180,6 +180,7 @@ export default defineNuxtPlugin(() => {
 
     socket.on('roundWinner', (resp: SocketResponse<GameIdPayload & PartialPlayerPayload & WhiteCardsPayload>) => {
         activeGameStore.incrementPlayerScore(resp.data!.player.id!);
+        activeGameStore.winningCards = resp.data!.cards;
     });
     
     socket.on('startTimer', (resp: SocketResponse<SecondsPayload>) => {
