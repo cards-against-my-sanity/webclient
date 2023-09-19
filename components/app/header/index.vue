@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useActiveGameStore } from '~/stores/active-game.store';
-import { MoonIcon, SunIcon, EllipsisHorizontalCircleIcon } from '@heroicons/vue/24/solid';
+import { MoonIcon, SunIcon } from '@heroicons/vue/24/solid';
 
 const colorMode = useColorMode();
 const activeGameStore = useActiveGameStore();
