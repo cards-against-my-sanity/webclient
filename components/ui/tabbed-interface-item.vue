@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const props = withDefaults(defineProps<{
-    active: boolean,
-    disabled: boolean,
+    active?: boolean,
+    disabled?: boolean,
     text: string
 }>(), {
     active: false,

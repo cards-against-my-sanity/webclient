@@ -1,5 +1,16 @@
 <script setup lang="ts">
+import GameActiveStateLobbySettings from '~/components/game/active/state/lobby/settings.vue';
+import GameActiveStateLobbyDecks from '~/components/game/active/state/lobby/decks.vue';
+
 const shownTab = ref<"settings" | "decks">("settings");
+const shownTabComponent = computed(() => {
+    switch (shownTab.value) {
+        case 'settings':
+            return GameActiveStateLobbySettings;
+        case 'decks':
+            return GameActiveStateLobbyDecks;
+    }
+});
 
 function showSettingsTab() {
     shownTab.value = "settings";
@@ -20,9 +31,8 @@ function showDecksTab() {
             </div>
         </div>
         <div class="h-full overflow-y-auto sm:h-auto">
-            <GameActiveStateLobbySettings v-if="shownTab === 'settings'" />
-            <KeepAlive v-else-if="shownTab === 'decks'">
-                <GameActiveStateLobbyDecks />
+            <KeepAlive>
+                <component :is="shownTabComponent" />
             </KeepAlive>
         </div>
     </div>
