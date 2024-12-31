@@ -1,6 +1,6 @@
 export default interface GameSettings {
   maxPlayers: number;
-  maxSpectators: number;
+  maxObservers: number;
   maxScore: number;   
   roundIntermissionTimer: number;
   gameWinIntermissionTimer: number;

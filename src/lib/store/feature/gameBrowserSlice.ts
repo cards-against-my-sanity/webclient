@@ -5,6 +5,7 @@ import Player from "@/types/Player";
 import Observer from "@/types/Observer";
 import { produce } from "immer";
 import GameState from "@/types/GameState";
+import GameSettings from "@/types/GameSettings";
 
 export interface GameBrowserState {
   chat: string[]
@@ -82,11 +83,21 @@ export const gameBrowserSlice = createSlice({
 
         target.splice(idx, 1)
       })
+    },
+    updateGameSettings: (state, action: PayloadAction<{ gameId: string, settings: GameSettings }>) => {
+      state.games = produce(state.games, draft => {
+        const { gameId, settings } = action.payload
+
+        const game = draft.find(g => g.id === gameId)
+        if (!game) return
+
+        game.settings = settings
+      })
     }
   }
 })
 
-export const { addGlobalChatMessage, setGames, addGame, removeGame, changeGameState, addUser, removeUser } = gameBrowserSlice.actions
+export const { addGlobalChatMessage, setGames, addGame, removeGame, changeGameState, addUser, removeUser, updateGameSettings } = gameBrowserSlice.actions
 
 export const selectGlobalChatMessages = (state: RootState): string[] => state.gameBrowser.chat
 

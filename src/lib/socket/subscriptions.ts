@@ -2,7 +2,7 @@ import { Client, StompSubscription } from "@stomp/stompjs";
 import { AppDispatch, store } from "../store/store";
 import SocketResponse from "@/types/dto/in/SocketResponse";
 import { toast } from "sonner";
-import { addGame, addGlobalChatMessage, addUser, changeGameState, removeGame, removeUser, setGames } from "../store/feature/gameBrowserSlice";
+import { addGame, addGlobalChatMessage, addUser, changeGameState, removeGame, removeUser, setGames, updateGameSettings } from "../store/feature/gameBrowserSlice";
 import Game from "@/types/Game";
 import { refreshWebsocketToken } from "../http/authLib";
 import Packet from "@/types/dto/in/Packet";
@@ -11,7 +11,7 @@ import PacketType from "@/types/dto/in/PacketType";
 import SocketResponseType from "@/types/dto/in/SocketResponseType";
 import GameCreatedPacketPayload from "@/types/dto/in/packet/GameCreatedPacketPayload";
 import GameRemovedPacketPayload from "@/types/dto/in/packet/GameRemovedPacketPayload";
-import { addLocalChatMessage, addUserToActiveGame, changeActiveGameState, clearActiveGame, removeUserFromActiveGame, setActiveGame } from "../store/feature/activeGameSlice";
+import { addLocalChatMessage, addUserToActiveGame, changeActiveGameState, clearActiveGame, removeUserFromActiveGame, setActiveGame, updateActiveGameAwaitingSettingsAck, updateActiveGameSettings } from "../store/feature/activeGameSlice";
 import User from "@/types/User";
 import PlayerJoinedGamePacketPayload from "@/types/dto/in/packet/PlayerJoinedGamePacketPayload";
 import PlayerLeftGamePacketPayload from "@/types/dto/in/packet/PlayerLeftGamePacketPayload";
@@ -19,6 +19,7 @@ import ObserverJoinedGamePacketPayload from "@/types/dto/in/packet/ObserverJoine
 import ObserverLeftGamePacketPayload from "@/types/dto/in/packet/ObserverLeftGamePacketPayload";
 import GameStateChangePacketPayload from "@/types/dto/in/packet/GameStateChangePacketPayload";
 import { SocketActions } from "./actions";
+import GameSettingsUpdatedPacketPayload from "@/types/dto/in/packet/GameSettingsUpdatedPacketPayload";
 
 export const globalSubscriptions = (user: User | null, stomp: Client, actions: SocketActions, dispatch: AppDispatch) => {
   stomp.subscribe('/topic/gameBrowser', msg => {
@@ -64,6 +65,11 @@ export const globalSubscriptions = (user: User | null, stomp: Client, actions: S
         dispatch(removeUser({ gameId, userId, observer: true }))
         break
       }
+      case PacketType.GAME_SETTINGS_UPDATED: {
+        const { gameId, settings } = (packet as Packet<GameSettingsUpdatedPacketPayload>).payload
+        dispatch(updateGameSettings({ gameId, settings }))
+        break
+      }
     }
   })
 
@@ -74,7 +80,6 @@ export const globalSubscriptions = (user: User | null, stomp: Client, actions: S
       toast.error(reply.error.title, {
         description: reply.error.message
       })
-      return
     }
 
     switch (reply.type) {
@@ -101,6 +106,9 @@ export const globalSubscriptions = (user: User | null, stomp: Client, actions: S
 
         dispatch(clearActiveGame())
         break
+      }
+      case SocketResponseType.UPDATE_SETTINGS: {
+        dispatch(updateActiveGameAwaitingSettingsAck({ awaitingSettingsAck: false }))
       }
     }
   })
@@ -161,6 +169,11 @@ export const gameSubscription = (stomp: Client, actions: SocketActions, dispatch
       case PacketType.OBSERVER_LEFT_GAME: {
         const { observerId: userId } = (packet as Packet<ObserverLeftGamePacketPayload>).payload
         dispatch(removeUserFromActiveGame({ userId, observer: true }))
+        break
+      }
+      case PacketType.GAME_SETTINGS_UPDATED: {
+        const { settings } = (packet as Packet<GameSettingsUpdatedPacketPayload>).payload
+        dispatch(updateActiveGameSettings({ settings }))
         break
       }
     }

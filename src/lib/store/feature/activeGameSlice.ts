@@ -5,16 +5,19 @@ import GameState from "@/types/GameState";
 import Player from "@/types/Player";
 import { produce } from "immer";
 import Observer from "@/types/Observer";
+import GameSettings from "@/types/GameSettings";
 
 export interface ActiveGameState {
   game: Game | null,
   subscriptionId: string | null,
+  awaitingSettingsAck: boolean,
   chat: string[]
 }
 
 const initialState: ActiveGameState = {
   game: null,
   subscriptionId: null,
+  awaitingSettingsAck: false,
   chat: []
 }
 
@@ -26,12 +29,17 @@ export const activeGameSlice = createSlice({
       const { game, subscriptionId } = action.payload
       state.game = game
       state.subscriptionId = subscriptionId
+      state.awaitingSettingsAck = false
       state.chat = []
     },
     clearActiveGame: (state) => {
       state.game = null
       state.subscriptionId = null
+      state.awaitingSettingsAck = false
       state.chat = []
+    },
+    updateActiveGameAwaitingSettingsAck: (state, action: PayloadAction<{ awaitingSettingsAck: boolean }>) => {
+      state.awaitingSettingsAck = action.payload.awaitingSettingsAck
     },
     addLocalChatMessage: (state, action: PayloadAction<{ message: string }>) => {
       if (!state.chat) return
@@ -75,13 +83,21 @@ export const activeGameSlice = createSlice({
         
         target.splice(idx, 1)
       })
+    },
+    updateActiveGameSettings: (state, action: PayloadAction<{ settings: GameSettings }>) => {
+      if (!state.game) return
+      state.game = produce(state.game, draft => {
+        draft.settings = action.payload.settings
+      })
     }
   }
 })
 
-export const { setActiveGame, clearActiveGame, addLocalChatMessage, changeActiveGameState, addUserToActiveGame, removeUserFromActiveGame } = activeGameSlice.actions
+export const { setActiveGame, clearActiveGame, updateActiveGameAwaitingSettingsAck, addLocalChatMessage, changeActiveGameState, addUserToActiveGame, removeUserFromActiveGame, updateActiveGameSettings } = activeGameSlice.actions
 
 export const selectLocalChatMessages = (state: RootState): string[] => state.activeGame.chat
+
+export const selectAwaitingSettingsAck = (state: RootState): boolean => state.activeGame.awaitingSettingsAck
 
 export const selectActiveGame = (state: RootState): Game | null => state.activeGame.game
 

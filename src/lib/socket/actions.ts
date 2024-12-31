@@ -1,4 +1,5 @@
 import JoinGameDto from "@/types/dto/out/socket/JoinGameDto";
+import GameSettings from "@/types/GameSettings";
 import { Client } from "@stomp/stompjs";
 
 export interface SocketActions {
@@ -7,10 +8,11 @@ export interface SocketActions {
   requestGameList: () => void,
   createGame: () => void,
   joinGame: (dto: JoinGameDto) => void,
-  leaveGame: () => void
+  leaveGame: () => void,
+  updateSettings: (gameId: string, settings: Partial<GameSettings>) => void
 }
 
-export const createSocketActions = (stomp: Client) => ({
+export const createSocketActions = (stomp: Client): SocketActions => ({
   sendGlobalChat: (message: string) => {
     stomp.publish({
       destination: '/app/globalChat',
@@ -47,6 +49,13 @@ export const createSocketActions = (stomp: Client) => ({
   leaveGame: () => {
     stomp.publish({
       destination: '/app/game/leave'
+    })
+  },
+
+  updateSettings: (gameId: string, settings: Partial<GameSettings>) => {
+    stomp.publish({
+      destination: `/app/game/${gameId}/updateSettings`,
+      body: JSON.stringify(settings)
     })
   }
 })
