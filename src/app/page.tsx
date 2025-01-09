@@ -1,7 +1,6 @@
 'use client'
 
 import ActiveGame from "@/components/activegame/ActiveGame";
-import Chatbox from "@/components/chatbox/chatbox";
 import GameBrowser from "@/components/lobby/gamebrowser/GameBrowser";
 import { useAppSelector } from "@/lib/store/store";
 
@@ -11,7 +10,6 @@ export default function Home() {
   return (
     <>
       {activeGame ? <ActiveGame game={activeGame} /> : <GameBrowser />}
-      <Chatbox />
     </>
   );
 }

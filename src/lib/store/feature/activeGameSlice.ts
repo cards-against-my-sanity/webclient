@@ -38,8 +38,8 @@ export const activeGameSlice = createSlice({
       state.awaitingSettingsAck = false
       state.chat = []
     },
-    updateActiveGameAwaitingSettingsAck: (state, action: PayloadAction<{ awaitingSettingsAck: boolean }>) => {
-      state.awaitingSettingsAck = action.payload.awaitingSettingsAck
+    setAwaitingSettingsAck: (state, action: PayloadAction<boolean>) => {
+      state.awaitingSettingsAck = action.payload
     },
     addLocalChatMessage: (state, action: PayloadAction<{ message: string }>) => {
       if (!state.chat) return
@@ -93,7 +93,7 @@ export const activeGameSlice = createSlice({
   }
 })
 
-export const { setActiveGame, clearActiveGame, updateActiveGameAwaitingSettingsAck, addLocalChatMessage, changeActiveGameState, addUserToActiveGame, removeUserFromActiveGame, updateActiveGameSettings } = activeGameSlice.actions
+export const { setActiveGame, clearActiveGame, setAwaitingSettingsAck, addLocalChatMessage, changeActiveGameState, addUserToActiveGame, removeUserFromActiveGame, updateActiveGameSettings } = activeGameSlice.actions
 
 export const selectLocalChatMessages = (state: RootState): string[] => state.activeGame.chat
 

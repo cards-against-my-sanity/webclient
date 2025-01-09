@@ -2,12 +2,11 @@
 
 import Game from "@/types/Game"
 import { Button } from "../ui/button"
-import { useContext } from "react"
+import { ReactNode, useContext } from "react"
 import { GameServerContext } from "@/lib/socket/context"
-import GameSettingsPanel from "./GameSettingsPanel"
-import GameSettings from "@/types/GameSettings"
-import { useAppDispatch } from "@/lib/store/store"
-import { updateActiveGameAwaitingSettingsAck } from "@/lib/store/feature/activeGameSlice"
+import GameState from "@/types/GameState"
+import LobbyScreen from "./state/lobby/LobbyScreen"
+import Chatbox from "../chatbox/chatbox"
 
 export interface ActiveGameProps {
   game: Game
@@ -15,19 +14,25 @@ export interface ActiveGameProps {
 
 export default function ActiveGame({ game }: ActiveGameProps) {
   const { ready, actions } = useContext(GameServerContext)
+  const notImplemented = <p>Not implemented</p>
 
-  const dispatch = useAppDispatch()
-
-  function handleUpdateSettings(settings: Partial<GameSettings>) {
-    actions?.updateSettings(game.id, settings)
-    dispatch(updateActiveGameAwaitingSettingsAck({ awaitingSettingsAck: true }))
+  let component: ReactNode
+  switch (game.state) {
+    case GameState.LOBBY:
+      component = <LobbyScreen game={game} />
+      break
+    case GameState.PLAYING:
+    case GameState.JUDGING:
+    case GameState.WIN:
+      component = notImplemented
+      break
   }
 
   return (
-    <>
-      <GameSettingsPanel settings={game.settings} onUpdateSettings={handleUpdateSettings} />
+    <div className="h-full flex flex-col">
       <Button onClick={() => actions?.leaveGame()} disabled={!ready}>Leave game</Button>
-      <p>{JSON.stringify(game)}</p>
-    </>
+      {component}
+      <Chatbox />
+    </div>
   )
 }

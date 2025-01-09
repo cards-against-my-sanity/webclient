@@ -1,5 +1,6 @@
 'use client'
 
+import Chatbox from "@/components/chatbox/chatbox"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import useCurrentUser from "@/lib/hook/useCurrentUser"
@@ -47,6 +48,7 @@ export default function GameBrowser() {
           </Card>
         ))}
       </div>
+      <Chatbox />
     </div>
   )
 }

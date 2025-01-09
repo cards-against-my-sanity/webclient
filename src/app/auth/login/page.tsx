@@ -7,14 +7,13 @@ import LogInRequestDto from "@/types/dto/out/http/LogInRequestDto";
 import { formOptions, useForm } from "@tanstack/react-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ReactNode, useContext, useState } from "react";
+import { ReactNode, useState } from "react";
 import Loading from "../../loading";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { GameServerContext } from "@/lib/socket/context";
 
 export default function LogInPage(): ReactNode {
   const { loading } = useAuthGuard({ rule: 'guest', redirect: '/' })
@@ -25,14 +24,11 @@ export default function LogInPage(): ReactNode {
 
   const searchParams = useSearchParams()
 
-  const gameserver = useContext(GameServerContext)
-
   const queryClient = useQueryClient()
   const logInMutation = useMutation({
     mutationFn: logIn,
     onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['currentUser'] })
-      await gameserver.client?.deactivate()
       router.push('/')
     },
     onError: (error) => {

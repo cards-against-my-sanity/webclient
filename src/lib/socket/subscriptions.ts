@@ -11,7 +11,7 @@ import PacketType from "@/types/dto/in/PacketType";
 import SocketResponseType from "@/types/dto/in/SocketResponseType";
 import GameCreatedPacketPayload from "@/types/dto/in/packet/GameCreatedPacketPayload";
 import GameRemovedPacketPayload from "@/types/dto/in/packet/GameRemovedPacketPayload";
-import { addLocalChatMessage, addUserToActiveGame, changeActiveGameState, clearActiveGame, removeUserFromActiveGame, setActiveGame, updateActiveGameAwaitingSettingsAck, updateActiveGameSettings } from "../store/feature/activeGameSlice";
+import { addLocalChatMessage, addUserToActiveGame, changeActiveGameState, clearActiveGame, removeUserFromActiveGame, setActiveGame, setAwaitingSettingsAck, updateActiveGameSettings } from "../store/feature/activeGameSlice";
 import User from "@/types/User";
 import PlayerJoinedGamePacketPayload from "@/types/dto/in/packet/PlayerJoinedGamePacketPayload";
 import PlayerLeftGamePacketPayload from "@/types/dto/in/packet/PlayerLeftGamePacketPayload";
@@ -76,6 +76,12 @@ export const globalSubscriptions = (user: User | null, stomp: Client, actions: S
   stomp.subscribe('/user/queue/reply', msg => {
     const reply = JSON.parse(msg.body) as SocketResponse<unknown>
 
+    if (reply.type === SocketResponseType.UPDATE_SETTINGS) {
+      if (reply.isError) {
+
+      }
+    }
+    
     if (reply.isError) {
       toast.error(reply.error.title, {
         description: reply.error.message
@@ -108,7 +114,7 @@ export const globalSubscriptions = (user: User | null, stomp: Client, actions: S
         break
       }
       case SocketResponseType.UPDATE_SETTINGS: {
-        dispatch(updateActiveGameAwaitingSettingsAck({ awaitingSettingsAck: false }))
+        dispatch(setAwaitingSettingsAck(false))
       }
     }
   })
