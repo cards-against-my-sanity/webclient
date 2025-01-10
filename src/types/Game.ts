@@ -1,3 +1,4 @@
+import DeckWithCards from "./DeckWithCards";
 import GameSettings from "./GameSettings";
 import GameState from "./GameState";
 import Observer from "./Observer";
@@ -9,5 +10,6 @@ export default interface Game {
   settings: GameSettings,
   state: GameState,
   players: Player[],
-  observers: Observer[]
+  observers: Observer[],
+  decks: DeckWithCards[]
 }

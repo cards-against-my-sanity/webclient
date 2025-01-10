@@ -6,6 +6,7 @@ import Observer from "@/types/Observer";
 import { produce } from "immer";
 import GameState from "@/types/GameState";
 import GameSettings from "@/types/GameSettings";
+import DeckWithCards from "@/types/DeckWithCards";
 
 export interface GameBrowserState {
   chat: string[]
@@ -93,11 +94,21 @@ export const gameBrowserSlice = createSlice({
 
         game.settings = settings
       })
+    },
+    updateGameDecks: (state, action: PayloadAction<{ gameId: string, decks: DeckWithCards[] }>) => {
+      state.games = produce(state.games, draft => {
+        const { gameId, decks } = action.payload
+
+        const game = draft.find(g => g.id === gameId)
+        if (!game) return
+
+        game.decks = decks
+      })
     }
   }
 })
 
-export const { addGlobalChatMessage, setGames, addGame, removeGame, changeGameState, addUser, removeUser, updateGameSettings } = gameBrowserSlice.actions
+export const { addGlobalChatMessage, setGames, addGame, removeGame, changeGameState, addUser, removeUser, updateGameSettings, updateGameDecks } = gameBrowserSlice.actions
 
 export const selectGlobalChatMessages = (state: RootState): string[] => state.gameBrowser.chat
 

@@ -6,11 +6,13 @@ import Player from "@/types/Player";
 import { produce } from "immer";
 import Observer from "@/types/Observer";
 import GameSettings from "@/types/GameSettings";
+import DeckWithCards from "@/types/DeckWithCards";
 
 export interface ActiveGameState {
   game: Game | null,
   subscriptionId: string | null,
   awaitingSettingsAck: boolean,
+  awaitingDecksAck: boolean,
   chat: string[]
 }
 
@@ -18,6 +20,7 @@ const initialState: ActiveGameState = {
   game: null,
   subscriptionId: null,
   awaitingSettingsAck: false,
+  awaitingDecksAck: false,
   chat: []
 }
 
@@ -41,6 +44,9 @@ export const activeGameSlice = createSlice({
     setAwaitingSettingsAck: (state, action: PayloadAction<boolean>) => {
       state.awaitingSettingsAck = action.payload
     },
+    setAwaitingDecksAck: (state, action: PayloadAction<boolean>) => {
+      state.awaitingDecksAck = action.payload
+    },
     addLocalChatMessage: (state, action: PayloadAction<{ message: string }>) => {
       if (!state.chat) return
       state.chat = produce(state.chat, draft => {
@@ -57,15 +63,11 @@ export const activeGameSlice = createSlice({
     addUserToActiveGame: (state, action: PayloadAction<{ user: Player | Observer, observer: boolean }>) => {
       if (!state.game) return
 
-      console.log('game existed, we are le here!')
-
       const { user, observer } = action.payload
       state.game = produce(state.game, draft => {
         if (observer) {
           draft.observers.push(user as Observer)
         } else {
-          console.log('adding player to draft')
-          console.log(user as Player)
           draft.players.push(user as Player)
         }
       })
@@ -89,15 +91,23 @@ export const activeGameSlice = createSlice({
       state.game = produce(state.game, draft => {
         draft.settings = action.payload.settings
       })
+    },
+    updateActiveGameDecks: (state, action: PayloadAction<{ decks: DeckWithCards[] }>) => {
+      if (!state.game) return
+      state.game = produce(state.game, draft => {
+        draft.decks = action.payload.decks
+      })
     }
   }
 })
 
-export const { setActiveGame, clearActiveGame, setAwaitingSettingsAck, addLocalChatMessage, changeActiveGameState, addUserToActiveGame, removeUserFromActiveGame, updateActiveGameSettings } = activeGameSlice.actions
+export const { setActiveGame, clearActiveGame, setAwaitingSettingsAck, setAwaitingDecksAck, addLocalChatMessage, changeActiveGameState, addUserToActiveGame, removeUserFromActiveGame, updateActiveGameSettings, updateActiveGameDecks } = activeGameSlice.actions
 
 export const selectLocalChatMessages = (state: RootState): string[] => state.activeGame.chat
 
 export const selectAwaitingSettingsAck = (state: RootState): boolean => state.activeGame.awaitingSettingsAck
+
+export const selectAwaitingDecksAck = (state: RootState): boolean => state.activeGame.awaitingDecksAck
 
 export const selectActiveGame = (state: RootState): Game | null => state.activeGame.game
 

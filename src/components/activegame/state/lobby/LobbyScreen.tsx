@@ -5,7 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { getDecks } from "@/lib/http/deckerLib";
 import { GameServerContext } from "@/lib/socket/context";
-import { setAwaitingSettingsAck } from "@/lib/store/feature/activeGameSlice";
+import { setAwaitingDecksAck, setAwaitingSettingsAck } from "@/lib/store/feature/activeGameSlice";
 import { useAppDispatch } from "@/lib/store/store";
 import Game from "@/types/Game";
 import GameConstants from "@/types/GameConstants";
@@ -33,7 +33,8 @@ export default function LobbyScreen({ game }: { game: Game }): ReactNode {
       defaultValues: { decks: [] }
     }),
     onSubmit: ({ value }) => {
-      console.log(value)
+      actions?.updateDecks(game.id, value.decks)
+      dispatch(setAwaitingDecksAck(true))
     }
   })
 

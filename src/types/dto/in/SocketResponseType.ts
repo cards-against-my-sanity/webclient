@@ -3,7 +3,8 @@ enum SocketResponseType {
   CREATE_GAME = "CREATE_GAME",
   JOIN_GAME = "JOIN_GAME",
   LEAVE_GAME = "LEAVE_GAME",
-  UPDATE_SETTINGS = "UPDATE_SETTINGS"
+  UPDATE_SETTINGS = "UPDATE_SETTINGS",
+  UPDATE_DECKS = "UPDATE_DECKS"
 }
 
 export default SocketResponseType;
