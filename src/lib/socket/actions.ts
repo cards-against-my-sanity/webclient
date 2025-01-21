@@ -1,6 +1,8 @@
 import JoinGameDto from "@/types/dto/out/socket/JoinGameDto";
 import GameSettings from "@/types/GameSettings";
 import { Client } from "@stomp/stompjs";
+import { store } from "../store/store";
+import { clearActiveGame } from "../store/feature/activeGameSlice";
 
 export interface SocketActions {
   sendGlobalChat: (message: string) => void,
@@ -33,7 +35,7 @@ export const createSocketActions = (stomp: Client): SocketActions => ({
       destination: '/app/game/list'
     })
   },
-  
+
   createGame: () => {
     stomp.publish({
       destination: '/app/game/create'
@@ -51,6 +53,13 @@ export const createSocketActions = (stomp: Client): SocketActions => ({
     stomp.publish({
       destination: '/app/game/leave'
     })
+
+    const { subscriptionId } = store.getState().activeGame
+    if (subscriptionId) {
+      stomp.unsubscribe(subscriptionId)
+    }
+
+    store.dispatch(clearActiveGame())
   },
 
   updateSettings: (gameId: string, settings: Partial<GameSettings>) => {

@@ -11,7 +11,7 @@ import PacketType from "@/types/dto/in/PacketType";
 import SocketResponseType from "@/types/dto/in/SocketResponseType";
 import GameCreatedPacketPayload from "@/types/dto/in/packet/GameCreatedPacketPayload";
 import GameRemovedPacketPayload from "@/types/dto/in/packet/GameRemovedPacketPayload";
-import { addLocalChatMessage, addUserToActiveGame, changeActiveGameState, clearActiveGame, removeUserFromActiveGame, setActiveGame, setAwaitingDecksAck, setAwaitingSettingsAck, updateActiveGameDecks, updateActiveGameSettings } from "../store/feature/activeGameSlice";
+import { addLocalChatMessage, addUserToActiveGame, changeActiveGameState, removeUserFromActiveGame, setActiveGame, setAwaitingDecksAck, setAwaitingSettingsAck, updateActiveGameDecks, updateActiveGameSettings } from "../store/feature/activeGameSlice";
 import User from "@/types/User";
 import PlayerJoinedGamePacketPayload from "@/types/dto/in/packet/PlayerJoinedGamePacketPayload";
 import PlayerLeftGamePacketPayload from "@/types/dto/in/packet/PlayerLeftGamePacketPayload";
@@ -103,15 +103,6 @@ export const globalSubscriptions = (user: User | null, stomp: Client, actions: S
         const game = store.getState().gameBrowser.games.find(game => game.id === (reply.data as string))
         if (!game) break      
         dispatch(setActiveGame({ game, subscriptionId: gameSubscription(user!, stomp, actions, dispatch, game.id).id }))
-        break
-      }
-      case SocketResponseType.LEAVE_GAME: {
-        const { subscriptionId } = store.getState().activeGame
-        if (subscriptionId) {
-          stomp.unsubscribe(subscriptionId)
-        }
-
-        dispatch(clearActiveGame())
         break
       }
       case SocketResponseType.UPDATE_SETTINGS: {
