@@ -1,9 +1,7 @@
 import BlackCard from "./BlackCard";
-import Deck from "./Deck";
 import WhiteCard from "./WhiteCard";
 
-export default interface DeckWithCards {
-  deck: Deck,
+export default interface Cards {
   blackCards: BlackCard[],
   whiteCards: WhiteCard[]
 }

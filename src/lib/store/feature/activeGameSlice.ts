@@ -6,7 +6,7 @@ import Player from "@/types/Player";
 import { produce } from "immer";
 import Observer from "@/types/Observer";
 import GameSettings from "@/types/GameSettings";
-import DeckWithCards from "@/types/DeckWithCards";
+import Deck from "@/types/Deck";
 
 export interface ActiveGameState {
   game: Game | null,
@@ -92,7 +92,7 @@ export const activeGameSlice = createSlice({
         draft.settings = action.payload.settings
       })
     },
-    updateActiveGameDecks: (state, action: PayloadAction<{ decks: DeckWithCards[] }>) => {
+    updateActiveGameDecks: (state, action: PayloadAction<{ decks: Deck[] }>) => {
       if (!state.game) return
       state.game = produce(state.game, draft => {
         draft.decks = action.payload.decks

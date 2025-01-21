@@ -21,6 +21,7 @@ import GameStateChangePacketPayload from "@/types/dto/in/packet/GameStateChangeP
 import { SocketActions } from "./actions";
 import GameSettingsUpdatedPacketPayload from "@/types/dto/in/packet/GameSettingsUpdatedPacketPayload";
 import GameDecksUpdatedPacketPayload from "@/types/dto/in/packet/GameDecksUpdatedPacketPayload";
+import GameState from "@/types/GameState";
 
 export const globalSubscriptions = (user: User | null, stomp: Client, actions: SocketActions, dispatch: AppDispatch) => {
   stomp.subscribe('/topic/gameBrowser', msg => {
@@ -95,13 +96,13 @@ export const globalSubscriptions = (user: User | null, stomp: Client, actions: S
       }
       case SocketResponseType.CREATE_GAME: {
         const game = reply.data as Game
-        dispatch(setActiveGame({ game, subscriptionId: gameSubscription(stomp, actions, dispatch, game.id).id }))
+        dispatch(setActiveGame({ game, subscriptionId: gameSubscription(user!, stomp, actions, dispatch, game.id).id }))
         break
       }
       case SocketResponseType.JOIN_GAME: {
         const game = store.getState().gameBrowser.games.find(game => game.id === (reply.data as string))
         if (!game) break      
-        dispatch(setActiveGame({ game, subscriptionId: gameSubscription(stomp, actions, dispatch, game.id).id }))
+        dispatch(setActiveGame({ game, subscriptionId: gameSubscription(user!, stomp, actions, dispatch, game.id).id }))
         break
       }
       case SocketResponseType.LEAVE_GAME: {
@@ -146,7 +147,7 @@ export const globalSubscriptions = (user: User | null, stomp: Client, actions: S
   }
 }
 
-export const gameSubscription = (stomp: Client, actions: SocketActions, dispatch: AppDispatch, gameId: string): StompSubscription => {
+export const gameSubscription = (user: User, stomp: Client, actions: SocketActions, dispatch: AppDispatch, gameId: string): StompSubscription => {
   const topic = `/topic/game/${gameId}`
 
   return stomp.subscribe(topic, msg => {
@@ -160,6 +161,9 @@ export const gameSubscription = (stomp: Client, actions: SocketActions, dispatch
       case PacketType.STATE_CHANGE: {
         const { state } = (packet as Packet<GameStateChangePacketPayload>).payload
         dispatch(changeActiveGameState({ state }))
+        if (state === GameState.ABANDONED && store.getState().activeGame.game?.hostId !== user.id) {
+          actions.leaveGame()
+        }
         break
       }
       case PacketType.PLAYER_JOINED_GAME: {

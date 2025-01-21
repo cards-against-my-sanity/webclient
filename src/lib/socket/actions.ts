@@ -10,7 +10,7 @@ export interface SocketActions {
   joinGame: (dto: JoinGameDto) => void,
   leaveGame: () => void,
   updateSettings: (gameId: string, settings: Partial<GameSettings>) => void,
-  updateDecks: (gameId: string, deckIds: string[]) => void
+  updateDeck: (gameId: string, deckId: string, active: boolean) => void
 }
 
 export const createSocketActions = (stomp: Client): SocketActions => ({
@@ -60,10 +60,10 @@ export const createSocketActions = (stomp: Client): SocketActions => ({
     })
   },
 
-  updateDecks: (gameId: string, deckIds: string[]) => {
+  updateDeck: (gameId: string, deckId: string, active: boolean) => {
     stomp.publish({
       destination: `/app/game/${gameId}/updateDecks`,
-      body: JSON.stringify({ deckIds })
+      body: JSON.stringify({ deckId, active })
     })
   }
 })

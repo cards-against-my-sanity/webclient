@@ -1,6 +1,6 @@
-import DeckWithCards from "@/types/DeckWithCards";
+import Deck from "@/types/Deck";
 
 export default interface GameDecksUpdatedPacketPayload {
   gameId: string,
-  decks: DeckWithCards[]
+  decks: Deck[]
 }

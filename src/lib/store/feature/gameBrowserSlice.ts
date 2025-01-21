@@ -6,7 +6,7 @@ import Observer from "@/types/Observer";
 import { produce } from "immer";
 import GameState from "@/types/GameState";
 import GameSettings from "@/types/GameSettings";
-import DeckWithCards from "@/types/DeckWithCards";
+import Deck from "@/types/Deck";
 
 export interface GameBrowserState {
   chat: string[]
@@ -95,7 +95,7 @@ export const gameBrowserSlice = createSlice({
         game.settings = settings
       })
     },
-    updateGameDecks: (state, action: PayloadAction<{ gameId: string, decks: DeckWithCards[] }>) => {
+    updateGameDecks: (state, action: PayloadAction<{ gameId: string, decks: Deck[] }>) => {
       state.games = produce(state.games, draft => {
         const { gameId, decks } = action.payload
 
